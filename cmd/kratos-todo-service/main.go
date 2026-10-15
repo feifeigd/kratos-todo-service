@@ -1,7 +1,77 @@
 package main
 
-import "fmt"
+import (
+	"flag"
+	"os"
+	"log/slog"
+
+	"kratos-todo-service/internal/conf"
+
+	"github.com/go-kratos/kratos/contrib/otel/v3/tracing"
+	"github.com/go-kratos/kratos/v3/config"
+	"github.com/go-kratos/kratos/v3/config/env"
+	"github.com/go-kratos/kratos/v3/config/file"
+	"github.com/go-kratos/kratos/v3/log"
+)
+
+// go build -ldflags "-X main.Version=x.y.z"
+var(
+	// Name is the name of the compiled software.
+	Name string
+
+	// Version is the version of the compiled software.
+	Version string
+
+	// flagconf is the config flag.
+	flagconf string
+
+	id, _ = os.Hostname()
+)
+
+func init(){
+	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
+}
 
 func main() {
-	fmt.Println("Hello, World!")
+	flag.Parse()
+	logger := log.NewLogger(
+		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+			AddSource: true,
+			Level: slog.LevelInfo,
+		}),
+		log.WithExtractor(tracing.TraceAttrs),
+	).With(
+		slog.String("service.id", id),
+		slog.String("service.name", Name),
+		slog.String("service.version", Version),
+	)
+
+	log.SetDefault(logger)
+	c:=config.New(
+		config.WithSource(
+			file.NewSource(flagconf),
+			env.NewSource("KRATOS"),
+		),
+	)
+	defer c.Close()
+
+	if err:=c.Load(); err!=nil{
+		panic(err)
+	}
+
+	var bc conf.Bootstrap
+	if err:=c.Scan(&bc); err!=nil{
+		panic(err)
+	}
+	
+	app, cleanup, err:= wireApp(bc.Server, bc.Data, logger)
+	if err!=nil{
+		panic(err)
+	}
+	defer cleanup()
+
+	// start and wait for stop signal
+	if err:=app.Run();err!=nil{
+		panic(err)
+	}
 }

@@ -3,3 +3,16 @@ syntax = "proto3";
 package kratos.api;
 
 option go_package = "kratos-todo-service/internal/conf;conf";
+
+message Bootstrap {
+    Server server = 1;
+    Data data = 2;
+}
+
+message Server {
+
+}
+
+message Data {
+    
+}
