@@ -1,0 +1,5 @@
+syntax = "proto3";
+
+package kratos.api;
+
+option go_package = "kratos-todo-service/internal/conf;conf";
