@@ -1,0 +1,38 @@
+# Generated with protoc-gen-openapi
+# https://github.com/google/gnostic/tree/master/cmd/protoc-gen-openapi
+
+openapi: 3.0.3
+info:
+    title: TodoService API
+    description: "TodoService provides a simple CRUD example for managing todo items.\r\n It demonstrates unary, server-streaming, and bidirectional-streaming RPCs\r\n together with AIP-style list filtering, ordering, and pagination."
+    version: 0.0.1
+paths:
+    v1/todos/create:
+        post:
+            tags:
+                - TodoService
+            operationId: TodoService_CreateTodo
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/todo.v1.Todo'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.Todo'
+components:
+    schemas:
+        todo.v1.Todo:
+            type: object
+            properties:
+                id:
+                    type: string
+                    description: Application-generated UUIDv7 identifier. Read-only on create.
+            description: Todo is the canonical representation of a todo item.
+tags:
+    - name: TodoService

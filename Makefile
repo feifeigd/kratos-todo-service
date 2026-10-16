@@ -21,6 +21,7 @@ api:
 .PHONY: build
 # build
 build:
+	go fmt
 	go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
 
 .PHONY: generate
@@ -33,6 +34,7 @@ all:
 	make api
 	make config
 	make generate
+	make build
 
 help:
 	@echo ''

@@ -1,2 +1,4 @@
 server: 
+  http: 
+    addr: :8080
 data: 
