@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package todo.v1;
+
+// buf.yaml 中配置依赖项, 然后执行 buf dep update
+import "google/api/annotations.proto";
+import "google/api/field_behavior.proto";
+import "google/protobuf/empty.proto";
+
+option go_package = "kratos-todo-service/api/todo/v1;v1";
+
+// TodoService provides a simple CRUD example for managing todo items.
+// It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
+// together with AIP-style list filtering, ordering, and pagination.
+service TodoService {
+    rpc CreateTodo(CreateTodoRequest)returns(Todo){
+        option(google.api.http)= {
+            post: "v1/todos/create"
+            body: "todo"
+        };
+    }
+}
+
+// Todo is the canonical representation of a todo item.
+message Todo {
+    // Application-generated UUIDv7 identifier. Read-only on create.
+    string id = 1;
+}
+
+// CreateTodoRequest is th input for TodoService.CreateTodo.
+message CreateTodoRequest {
+    // The todo item to create. The id, created_at, and updated_at fields are
+    // ignored on input and populated by the server in the response.
+    Todo todo = 1 [(google.api.field_behavior) = REQUIRED];
+}

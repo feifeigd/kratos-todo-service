@@ -18,7 +18,7 @@ import (
 	"kratos-todo-service/internal/conf"
 	// "kratos-todo-service/internal/data"
 	"kratos-todo-service/internal/server"
-	// "kratos-todo-service/internal/service"
+	"kratos-todo-service/internal/service"
 
 	"github.com/go-kratos/kratos/v3" // kratos
 	"github.com/google/wire"
@@ -31,6 +31,6 @@ func wireApp(*conf.Server, *conf.Data, *slog.Logger) (app *kratos.App, cleanup f
 		server.ProviderSet,
 		// data.ProviderSet,
 		// biz.ProviderSet,
-		// service.ProviderSet,
+		service.ProviderSet,
 		newApp))
 }

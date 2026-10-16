@@ -10,6 +10,7 @@ import (
 	"github.com/go-kratos/kratos/v3"
 	"kratos-todo-service/internal/conf"
 	"kratos-todo-service/internal/server"
+	"kratos-todo-service/internal/service"
 	"log/slog"
 )
 
@@ -18,7 +19,8 @@ import (
 // wireApp init kratos application.
 func wireApp(confServer *conf.Server, data *conf.Data, logger *slog.Logger) (*kratos.App, func(), error) {
 	grpcServer := server.NewGRPCServer(confServer)
-	httpServer := server.NewHTTPServer(confServer)
+	todoService := service.NewTodoService()
+	httpServer := server.NewHTTPServer(confServer, todoService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {
 	}, nil
