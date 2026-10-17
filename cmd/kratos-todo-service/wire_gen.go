@@ -18,8 +18,8 @@ import (
 
 // wireApp init kratos application.
 func wireApp(confServer *conf.Server, data *conf.Data, logger *slog.Logger) (*kratos.App, func(), error) {
-	grpcServer := server.NewGRPCServer(confServer)
 	todoService := service.NewTodoService()
+	grpcServer := server.NewGRPCServer(confServer, todoService)
 	httpServer := server.NewHTTPServer(confServer, todoService)
 	app := newApp(logger, grpcServer, httpServer)
 	return app, func() {

@@ -1,19 +1,21 @@
 package service
 
 import (
-	
 	"context"
-	"kratos-todo-service/api/todo/v1"
+	v1 "kratos-todo-service/api/todo/v1"
+	"kratos-todo-service/internal/biz"
 )
-type TodoService struct{
 
+type TodoService struct {
+	v1.UnimplementedTodoServiceServer
+	uc *biz.TodoUsecase
 }
 
 // 实现 grpc 接口
-// var _ v1.TodoService = (*TodoService)(nil)
+var _ v1.TodoServiceServer = (*TodoService)(nil)
 
-func NewTodoService()*TodoService{
-	return &TodoService{}
+func NewTodoService(uc *biz.TodoUsecase) *TodoService {
+	return &TodoService{uc: uc}
 }
 
 func(s* TodoService)CreateTodo(ctx context.Context, req *v1.CreateTodoRequest)(*v1.Todo, error){
