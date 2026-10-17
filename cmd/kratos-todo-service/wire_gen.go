@@ -8,7 +8,9 @@ package main
 
 import (
 	"github.com/go-kratos/kratos/v3"
+	"kratos-todo-service/internal/biz"
 	"kratos-todo-service/internal/conf"
+	"kratos-todo-service/internal/data"
 	"kratos-todo-service/internal/server"
 	"kratos-todo-service/internal/service"
 	"log/slog"
@@ -17,8 +19,10 @@ import (
 // Injectors from wire.go:
 
 // wireApp init kratos application.
-func wireApp(confServer *conf.Server, data *conf.Data, logger *slog.Logger) (*kratos.App, func(), error) {
-	todoService := service.NewTodoService()
+func wireApp(confServer *conf.Server, confData *conf.Data, logger *slog.Logger) (*kratos.App, func(), error) {
+	todoRepo := data.NewTodoRepo()
+	todoUsecase := biz.NewTodoUsecase(todoRepo)
+	todoService := service.NewTodoService(todoUsecase)
 	grpcServer := server.NewGRPCServer(confServer, todoService)
 	httpServer := server.NewHTTPServer(confServer, todoService)
 	app := newApp(logger, grpcServer, httpServer)

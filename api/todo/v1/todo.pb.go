@@ -23,11 +23,66 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// TodoStatus is the lifecycle state of a todo item.
+type TodoStatus int32
+
+const (
+	TodoStatus_TODO_STATUS_UNSPECIFIED TodoStatus = 0
+	TodoStatus_TODO_STATUS_ACTIVE      TodoStatus = 1
+	TodoStatus_TODO_STATUS_DELETED     TodoStatus = 2
+)
+
+// Enum value maps for TodoStatus.
+var (
+	TodoStatus_name = map[int32]string{
+		0: "TODO_STATUS_UNSPECIFIED",
+		1: "TODO_STATUS_ACTIVE",
+		2: "TODO_STATUS_DELETED",
+	}
+	TodoStatus_value = map[string]int32{
+		"TODO_STATUS_UNSPECIFIED": 0,
+		"TODO_STATUS_ACTIVE":      1,
+		"TODO_STATUS_DELETED":     2,
+	}
+)
+
+func (x TodoStatus) Enum() *TodoStatus {
+	p := new(TodoStatus)
+	*p = x
+	return p
+}
+
+func (x TodoStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (TodoStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_todo_v1_todo_proto_enumTypes[0].Descriptor()
+}
+
+func (TodoStatus) Type() protoreflect.EnumType {
+	return &file_todo_v1_todo_proto_enumTypes[0]
+}
+
+func (x TodoStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use TodoStatus.Descriptor instead.
+func (TodoStatus) EnumDescriptor() ([]byte, []int) {
+	return file_todo_v1_todo_proto_rawDescGZIP(), []int{0}
+}
+
 // Todo is the canonical representation of a todo item.
 type Todo struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Application-generated UUIDv7 identifier. Read-only on create.
-	Id            string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Short human-readable title.
+	Title         string     `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Content       string     `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	Completed     bool       `protobuf:"varint,4,opt,name=completed,proto3" json:"completed,omitempty"`
+	Status        TodoStatus `protobuf:"varint,7,opt,name=status,proto3,enum=todo.v1.TodoStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -67,6 +122,34 @@ func (x *Todo) GetId() string {
 		return x.Id
 	}
 	return ""
+}
+
+func (x *Todo) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *Todo) GetContent() string {
+	if x != nil {
+		return x.Content
+	}
+	return ""
+}
+
+func (x *Todo) GetCompleted() bool {
+	if x != nil {
+		return x.Completed
+	}
+	return false
+}
+
+func (x *Todo) GetStatus() TodoStatus {
+	if x != nil {
+		return x.Status
+	}
+	return TodoStatus_TODO_STATUS_UNSPECIFIED
 }
 
 // CreateTodoRequest is th input for TodoService.CreateTodo.
@@ -120,11 +203,20 @@ var File_todo_v1_todo_proto protoreflect.FileDescriptor
 
 const file_todo_v1_todo_proto_rawDesc = "" +
 	"\n" +
-	"\x12todo/v1/todo.proto\x12\atodo.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x16\n" +
+	"\x12todo/v1/todo.proto\x12\atodo.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x91\x01\n" +
 	"\x04Todo\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"<\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
+	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
+	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1c\n" +
+	"\tcompleted\x18\x04 \x01(\bR\tcompleted\x12+\n" +
+	"\x06status\x18\a \x01(\x0e2\x13.todo.v1.TodoStatusR\x06status\"<\n" +
 	"\x11CreateTodoRequest\x12'\n" +
-	"\x04todo\x18\x01 \x01(\v2\r.todo.v1.TodoB\x04\xe2A\x01\x02R\x04todo2e\n" +
+	"\x04todo\x18\x01 \x01(\v2\r.todo.v1.TodoB\x04\xe2A\x01\x02R\x04todo*Z\n" +
+	"\n" +
+	"TodoStatus\x12\x1b\n" +
+	"\x17TODO_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
+	"\x12TODO_STATUS_ACTIVE\x10\x01\x12\x17\n" +
+	"\x13TODO_STATUS_DELETED\x10\x022e\n" +
 	"\vTodoService\x12V\n" +
 	"\n" +
 	"CreateTodo\x12\x1a.todo.v1.CreateTodoRequest\x1a\r.todo.v1.Todo\"\x1d\x82\xd3\xe4\x93\x02\x17:\x04todo\"\x0fv1/todos/createB$Z\"kratos-todo-service/api/todo/v1;v1b\x06proto3"
@@ -141,20 +233,23 @@ func file_todo_v1_todo_proto_rawDescGZIP() []byte {
 	return file_todo_v1_todo_proto_rawDescData
 }
 
+var file_todo_v1_todo_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_todo_v1_todo_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_todo_v1_todo_proto_goTypes = []any{
-	(*Todo)(nil),              // 0: todo.v1.Todo
-	(*CreateTodoRequest)(nil), // 1: todo.v1.CreateTodoRequest
+	(TodoStatus)(0),           // 0: todo.v1.TodoStatus
+	(*Todo)(nil),              // 1: todo.v1.Todo
+	(*CreateTodoRequest)(nil), // 2: todo.v1.CreateTodoRequest
 }
 var file_todo_v1_todo_proto_depIdxs = []int32{
-	0, // 0: todo.v1.CreateTodoRequest.todo:type_name -> todo.v1.Todo
-	1, // 1: todo.v1.TodoService.CreateTodo:input_type -> todo.v1.CreateTodoRequest
-	0, // 2: todo.v1.TodoService.CreateTodo:output_type -> todo.v1.Todo
-	2, // [2:3] is the sub-list for method output_type
-	1, // [1:2] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	0, // 0: todo.v1.Todo.status:type_name -> todo.v1.TodoStatus
+	1, // 1: todo.v1.CreateTodoRequest.todo:type_name -> todo.v1.Todo
+	2, // 2: todo.v1.TodoService.CreateTodo:input_type -> todo.v1.CreateTodoRequest
+	1, // 3: todo.v1.TodoService.CreateTodo:output_type -> todo.v1.Todo
+	3, // [3:4] is the sub-list for method output_type
+	2, // [2:3] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_todo_v1_todo_proto_init() }
@@ -167,13 +262,14 @@ func file_todo_v1_todo_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_todo_v1_todo_proto_rawDesc), len(file_todo_v1_todo_proto_rawDesc)),
-			NumEnums:      0,
+			NumEnums:      1,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_todo_v1_todo_proto_goTypes,
 		DependencyIndexes: file_todo_v1_todo_proto_depIdxs,
+		EnumInfos:         file_todo_v1_todo_proto_enumTypes,
 		MessageInfos:      file_todo_v1_todo_proto_msgTypes,
 	}.Build()
 	File_todo_v1_todo_proto = out.File

@@ -33,6 +33,16 @@ components:
                 id:
                     type: string
                     description: Application-generated UUIDv7 identifier. Read-only on create.
+                title:
+                    type: string
+                    description: Short human-readable title.
+                content:
+                    type: string
+                completed:
+                    type: boolean
+                status:
+                    type: integer
+                    format: enum
             description: Todo is the canonical representation of a todo item.
 tags:
     - name: TodoService
