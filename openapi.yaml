@@ -40,6 +40,13 @@ components:
                     type: string
                 completed:
                     type: boolean
+                createdAt:
+                    type: string
+                    description: Server-assigned, read-only
+                    format: date-time
+                updatedAt:
+                    type: string
+                    format: date-time
                 status:
                     type: integer
                     format: enum

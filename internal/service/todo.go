@@ -6,6 +6,7 @@ import (
 	"kratos-todo-service/internal/biz"
 
 	"github.com/google/uuid"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type TodoService struct {
@@ -56,6 +57,8 @@ func convertTodoReply(in *biz.Todo) *v1.Todo {
 		Content:   in.Content,
 		Completed: in.Completed,
 		Status:    convertTodoStatus(in.Status),
+		CreatedAt: timestamppb.New(in.CreatedAt),
+		UpdatedAt: timestamppb.New(in.UpdatedAt),
 	}
 }
 

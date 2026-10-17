@@ -27,6 +27,20 @@ func (_u *TodoUpdate) Where(ps ...predicate.Todo) *TodoUpdate {
 	return _u
 }
 
+// SetTitle sets the "title" field.
+func (_u *TodoUpdate) SetTitle(v string) *TodoUpdate {
+	_u.mutation.SetTitle(v)
+	return _u
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (_u *TodoUpdate) SetNillableTitle(v *string) *TodoUpdate {
+	if v != nil {
+		_u.SetTitle(*v)
+	}
+	return _u
+}
+
 // Mutation returns the TodoMutation object of the builder.
 func (_u *TodoUpdate) Mutation() *TodoMutation {
 	return _u.mutation
@@ -60,13 +74,16 @@ func (_u *TodoUpdate) ExecX(ctx context.Context) {
 }
 
 func (_u *TodoUpdate) sqlSave(ctx context.Context) (_node int, err error) {
-	_spec := sqlgraph.NewUpdateSpec(todo.Table, todo.Columns, sqlgraph.NewFieldSpec(todo.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(todo.Table, todo.Columns, sqlgraph.NewFieldSpec(todo.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Title(); ok {
+		_spec.SetField(todo.FieldTitle, field.TypeString, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -86,6 +103,20 @@ type TodoUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *TodoMutation
+}
+
+// SetTitle sets the "title" field.
+func (_u *TodoUpdateOne) SetTitle(v string) *TodoUpdateOne {
+	_u.mutation.SetTitle(v)
+	return _u
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (_u *TodoUpdateOne) SetNillableTitle(v *string) *TodoUpdateOne {
+	if v != nil {
+		_u.SetTitle(*v)
+	}
+	return _u
 }
 
 // Mutation returns the TodoMutation object of the builder.
@@ -134,7 +165,7 @@ func (_u *TodoUpdateOne) ExecX(ctx context.Context) {
 }
 
 func (_u *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) {
-	_spec := sqlgraph.NewUpdateSpec(todo.Table, todo.Columns, sqlgraph.NewFieldSpec(todo.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(todo.Table, todo.Columns, sqlgraph.NewFieldSpec(todo.FieldID, field.TypeUUID))
 	id, ok := _u.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Todo.id" for update`)}
@@ -158,6 +189,9 @@ func (_u *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := _u.mutation.Title(); ok {
+		_spec.SetField(todo.FieldTitle, field.TypeString, value)
 	}
 	_node = &Todo{config: _u.config}
 	_spec.Assign = _node.assignValues

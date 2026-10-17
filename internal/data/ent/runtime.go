@@ -2,8 +2,28 @@
 
 package ent
 
+import (
+	"kratos-todo-service/internal/data/ent/schema"
+	"kratos-todo-service/internal/data/ent/todo"
+
+	"github.com/google/uuid"
+)
+
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	todoMixin := schema.Todo{}.Mixin()
+	todoMixinFields0 := todoMixin[0].Fields()
+	_ = todoMixinFields0
+	todoFields := schema.Todo{}.Fields()
+	_ = todoFields
+	// todoDescTitle is the schema descriptor for title field.
+	todoDescTitle := todoFields[0].Descriptor()
+	// todo.DefaultTitle holds the default value on creation for the title field.
+	todo.DefaultTitle = todoDescTitle.Default.(string)
+	// todoDescID is the schema descriptor for id field.
+	todoDescID := todoMixinFields0[0].Descriptor()
+	// todo.DefaultID holds the default value on creation for the id field.
+	todo.DefaultID = todoDescID.Default.(func() uuid.UUID)
 }

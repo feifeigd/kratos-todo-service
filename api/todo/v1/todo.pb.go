@@ -11,6 +11,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	_ "google.golang.org/protobuf/types/known/emptypb"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
 	sync "sync"
 	unsafe "unsafe"
@@ -27,9 +28,11 @@ const (
 type TodoStatus int32
 
 const (
+	// Default value. Never returned by the server.
 	TodoStatus_TODO_STATUS_UNSPECIFIED TodoStatus = 0
 	TodoStatus_TODO_STATUS_ACTIVE      TodoStatus = 1
-	TodoStatus_TODO_STATUS_DELETED     TodoStatus = 2
+	// The item has been soft-deleted: the recore is retained by the server but no loger appears in GetTodo or ListTodos results.
+	TodoStatus_TODO_STATUS_DELETED TodoStatus = 2
 )
 
 // Enum value maps for TodoStatus.
@@ -79,10 +82,13 @@ type Todo struct {
 	// Application-generated UUIDv7 identifier. Read-only on create.
 	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	// Short human-readable title.
-	Title         string     `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
-	Content       string     `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
-	Completed     bool       `protobuf:"varint,4,opt,name=completed,proto3" json:"completed,omitempty"`
-	Status        TodoStatus `protobuf:"varint,7,opt,name=status,proto3,enum=todo.v1.TodoStatus" json:"status,omitempty"`
+	Title     string `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	Content   string `protobuf:"bytes,3,opt,name=content,proto3" json:"content,omitempty"`
+	Completed bool   `protobuf:"varint,4,opt,name=completed,proto3" json:"completed,omitempty"`
+	// Server-assigned, read-only
+	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
+	Status        TodoStatus             `protobuf:"varint,7,opt,name=status,proto3,enum=todo.v1.TodoStatus" json:"status,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -145,6 +151,20 @@ func (x *Todo) GetCompleted() bool {
 	return false
 }
 
+func (x *Todo) GetCreatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *Todo) GetUpdatedAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return nil
+}
+
 func (x *Todo) GetStatus() TodoStatus {
 	if x != nil {
 		return x.Status
@@ -203,12 +223,16 @@ var File_todo_v1_todo_proto protoreflect.FileDescriptor
 
 const file_todo_v1_todo_proto_rawDesc = "" +
 	"\n" +
-	"\x12todo/v1/todo.proto\x12\atodo.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\"\x91\x01\n" +
+	"\x12todo/v1/todo.proto\x12\atodo.v1\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x87\x02\n" +
 	"\x04Todo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05title\x18\x02 \x01(\tR\x05title\x12\x18\n" +
 	"\acontent\x18\x03 \x01(\tR\acontent\x12\x1c\n" +
-	"\tcompleted\x18\x04 \x01(\bR\tcompleted\x12+\n" +
+	"\tcompleted\x18\x04 \x01(\bR\tcompleted\x129\n" +
+	"\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
+	"\n" +
+	"updated_at\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x12+\n" +
 	"\x06status\x18\a \x01(\x0e2\x13.todo.v1.TodoStatusR\x06status\"<\n" +
 	"\x11CreateTodoRequest\x12'\n" +
 	"\x04todo\x18\x01 \x01(\v2\r.todo.v1.TodoB\x04\xe2A\x01\x02R\x04todo*Z\n" +
@@ -236,20 +260,23 @@ func file_todo_v1_todo_proto_rawDescGZIP() []byte {
 var file_todo_v1_todo_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
 var file_todo_v1_todo_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_todo_v1_todo_proto_goTypes = []any{
-	(TodoStatus)(0),           // 0: todo.v1.TodoStatus
-	(*Todo)(nil),              // 1: todo.v1.Todo
-	(*CreateTodoRequest)(nil), // 2: todo.v1.CreateTodoRequest
+	(TodoStatus)(0),               // 0: todo.v1.TodoStatus
+	(*Todo)(nil),                  // 1: todo.v1.Todo
+	(*CreateTodoRequest)(nil),     // 2: todo.v1.CreateTodoRequest
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_todo_v1_todo_proto_depIdxs = []int32{
-	0, // 0: todo.v1.Todo.status:type_name -> todo.v1.TodoStatus
-	1, // 1: todo.v1.CreateTodoRequest.todo:type_name -> todo.v1.Todo
-	2, // 2: todo.v1.TodoService.CreateTodo:input_type -> todo.v1.CreateTodoRequest
-	1, // 3: todo.v1.TodoService.CreateTodo:output_type -> todo.v1.Todo
-	3, // [3:4] is the sub-list for method output_type
-	2, // [2:3] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	3, // 0: todo.v1.Todo.created_at:type_name -> google.protobuf.Timestamp
+	3, // 1: todo.v1.Todo.updated_at:type_name -> google.protobuf.Timestamp
+	0, // 2: todo.v1.Todo.status:type_name -> todo.v1.TodoStatus
+	1, // 3: todo.v1.CreateTodoRequest.todo:type_name -> todo.v1.Todo
+	2, // 4: todo.v1.TodoService.CreateTodo:input_type -> todo.v1.CreateTodoRequest
+	1, // 5: todo.v1.TodoService.CreateTodo:output_type -> todo.v1.Todo
+	5, // [5:6] is the sub-list for method output_type
+	4, // [4:5] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_todo_v1_todo_proto_init() }

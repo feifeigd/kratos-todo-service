@@ -6,6 +6,7 @@ package todo.v1;
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto"; // google.protobuf.Timestamp
 
 option go_package = "kratos-todo-service/api/todo/v1;v1";
 

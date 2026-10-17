@@ -4,6 +4,7 @@ import (
 	"context"
 	v1 "kratos-todo-service/api/todo/v1"
 	"strings"
+	"time"
 
 	"github.com/go-kratos/kratos/v3/errors"
 	"github.com/google/uuid"
@@ -32,6 +33,8 @@ type (
 		Content   string
 		Completed bool
 		Status    TodoStatus
+		CreatedAt time.Time
+		UpdatedAt time.Time
 	}
 
 	TodoRepo interface {
