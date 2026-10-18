@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	TodoService_CreateTodo_FullMethodName = "/todo.v1.TodoService/CreateTodo"
+	TodoService_ListTodos_FullMethodName  = "/todo.v1.TodoService/ListTodos"
 )
 
 // TodoServiceClient is the client API for TodoService service.
@@ -30,7 +31,14 @@ const (
 // It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
 // together with AIP-style list filtering, ordering, and pagination.
 type TodoServiceClient interface {
+	// CreateTodo creates a new todo item and returns the persisted record
+	// with the server-assigned id, created_at, and updated_at populated.
+	// Returns INVALID_ARGUMENT if the request payload fails validation.
 	CreateTodo(ctx context.Context, in *CreateTodoRequest, opts ...grpc.CallOption) (*Todo, error)
+	// ListTodos returns a page of todo items, optionally filtered and ordered.
+	// Use the next_page_token from TodoSet to retrieve subsequent pages.
+	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
+	ListTodos(ctx context.Context, in *ListTodosRequest, opts ...grpc.CallOption) (*TodoSet, error)
 }
 
 type todoServiceClient struct {
@@ -51,6 +59,16 @@ func (c *todoServiceClient) CreateTodo(ctx context.Context, in *CreateTodoReques
 	return out, nil
 }
 
+func (c *todoServiceClient) ListTodos(ctx context.Context, in *ListTodosRequest, opts ...grpc.CallOption) (*TodoSet, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(TodoSet)
+	err := c.cc.Invoke(ctx, TodoService_ListTodos_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TodoServiceServer is the server API for TodoService service.
 // All implementations must embed UnimplementedTodoServiceServer
 // for forward compatibility.
@@ -59,7 +77,14 @@ func (c *todoServiceClient) CreateTodo(ctx context.Context, in *CreateTodoReques
 // It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
 // together with AIP-style list filtering, ordering, and pagination.
 type TodoServiceServer interface {
+	// CreateTodo creates a new todo item and returns the persisted record
+	// with the server-assigned id, created_at, and updated_at populated.
+	// Returns INVALID_ARGUMENT if the request payload fails validation.
 	CreateTodo(context.Context, *CreateTodoRequest) (*Todo, error)
+	// ListTodos returns a page of todo items, optionally filtered and ordered.
+	// Use the next_page_token from TodoSet to retrieve subsequent pages.
+	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
+	ListTodos(context.Context, *ListTodosRequest) (*TodoSet, error)
 	mustEmbedUnimplementedTodoServiceServer()
 }
 
@@ -72,6 +97,9 @@ type UnimplementedTodoServiceServer struct{}
 
 func (UnimplementedTodoServiceServer) CreateTodo(context.Context, *CreateTodoRequest) (*Todo, error) {
 	return nil, status.Error(codes.Unimplemented, "method CreateTodo not implemented")
+}
+func (UnimplementedTodoServiceServer) ListTodos(context.Context, *ListTodosRequest) (*TodoSet, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListTodos not implemented")
 }
 func (UnimplementedTodoServiceServer) mustEmbedUnimplementedTodoServiceServer() {}
 func (UnimplementedTodoServiceServer) testEmbeddedByValue()                     {}
@@ -112,6 +140,24 @@ func _TodoService_CreateTodo_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TodoService_ListTodos_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListTodosRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TodoServiceServer).ListTodos(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TodoService_ListTodos_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TodoServiceServer).ListTodos(ctx, req.(*ListTodosRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TodoService_ServiceDesc is the grpc.ServiceDesc for TodoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -122,6 +168,10 @@ var TodoService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateTodo",
 			Handler:    _TodoService_CreateTodo_Handler,
+		},
+		{
+			MethodName: "ListTodos",
+			Handler:    _TodoService_ListTodos_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

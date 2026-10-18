@@ -11,6 +11,7 @@ import (
 
 type TodoService struct {
 	v1.UnimplementedTodoServiceServer
+
 	uc *biz.TodoUsecase
 }
 

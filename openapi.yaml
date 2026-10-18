@@ -7,10 +7,45 @@ info:
     description: "TodoService provides a simple CRUD example for managing todo items.\r\n It demonstrates unary, server-streaming, and bidirectional-streaming RPCs\r\n together with AIP-style list filtering, ordering, and pagination."
     version: 0.0.1
 paths:
+    /v1/todos/list:
+        get:
+            tags:
+                - TodoService
+            description: "ListTodos returns a page of todo items, optionally filtered and ordered.\r\n Use the next_page_token from TodoSet to retrieve subsequent pages.\r\n Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed."
+            operationId: TodoService_ListTodos
+            parameters:
+                - name: pageSize
+                  in: query
+                  schema:
+                    type: integer
+                    format: int32
+                - name: pageToken
+                  in: query
+                  description: "Optional. Token from a previous response's next_page_token used to fetch the netx page.\r\n Leave empty to request the first page."
+                  schema:
+                    type: string
+                - name: filter
+                  in: query
+                  description: "Optional. The standare list filter.\r\n Supported fields:\r\n     * `title` (i.e. `title:\"bug\"`)\r\n     * `content` (i.e. `content:\"docs\"`)\r\n     * `completed` (i.e. `completed` or `NOT compoeted`)\r\n     * `created_at` range (i.e. `created>=\"2026-01-01T00:00:00Z\"`)"
+                  schema:
+                    type: string
+                - name: order
+                  in: query
+                  description: "Optional. A comma-separated list of fields to order by.\r\n Supported fields:\r\n     * `id`\r\n     * `title`\r\n     * `created_at`\r\n     * `updated_at`\r\n Append ` desc` to a field for descending order, e.g. `created_at desc`.\r\n Defaults to ascending order when no direction is supplied."
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.TodoSet'
     v1/todos/create:
         post:
             tags:
                 - TodoService
+            description: "CreateTodo creates a new todo item and returns the persisted record \r\n with the server-assigned id, created_at, and updated_at populated.\r\n Returns INVALID_ARGUMENT if the request payload fails validation."
             operationId: TodoService_CreateTodo
             requestBody:
                 content:
@@ -51,5 +86,17 @@ components:
                     type: integer
                     format: enum
             description: Todo is the canonical representation of a todo item.
+        todo.v1.TodoSet:
+            type: object
+            properties:
+                todos:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/todo.v1.Todo'
+                    description: The page of todo items in the order requested by ListTodosRequest.order_by.
+                nextPageToken:
+                    type: string
+                    description: "Token used to retrieve the next page via ListTodosRequest.page_token.\r\n Empty when there are no more results."
+            description: TodoSet is a paginated collection of todo items returned by ListTodos.
 tags:
     - name: TodoService

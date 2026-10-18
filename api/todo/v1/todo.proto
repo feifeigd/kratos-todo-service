@@ -14,10 +14,22 @@ option go_package = "kratos-todo-service/api/todo/v1;v1";
 // It demonstrates unary, server-streaming, and bidirectional-streaming RPCs
 // together with AIP-style list filtering, ordering, and pagination.
 service TodoService {
+    // CreateTodo creates a new todo item and returns the persisted record 
+    // with the server-assigned id, created_at, and updated_at populated.
+    // Returns INVALID_ARGUMENT if the request payload fails validation.
     rpc CreateTodo(CreateTodoRequest)returns(Todo){
         option(google.api.http)= {
             post: "v1/todos/create"
             body: "todo"
+        };
+    }
+
+    // ListTodos returns a page of todo items, optionally filtered and ordered.
+    // Use the next_page_token from TodoSet to retrieve subsequent pages.
+    // Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
+    rpc ListTodos(ListTodosRequest)returns (TodoSet){
+        option(google.api.http)={
+            get: "/v1/todos/list"
         };
     }
 }
@@ -45,9 +57,49 @@ message Todo {
     TodoStatus status = 7;
 }
 
+// TodoSet is a paginated collection of todo items returned by ListTodos.
+message TodoSet{
+    // The page of todo items in the order requested by ListTodosRequest.order_by.
+    repeated Todo todos = 1;
+
+    // Token used to retrieve the next page via ListTodosRequest.page_token.
+    // Empty when there are no more results.
+    string next_page_token = 2;
+}
+
 // CreateTodoRequest is th input for TodoService.CreateTodo.
 message CreateTodoRequest {
     // The todo item to create. The id, created_at, and updated_at fields are
     // ignored on input and populated by the server in the response.
     Todo todo = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message GetTodoRequest {
+    string id = 1 [(google.api.field_behavior) = REQUIRED];
+}
+
+message ListTodosRequest {
+    int32 page_size = 1;
+
+    // Optional. Token from a previous response's next_page_token used to fetch the netx page.
+    // Leave empty to request the first page.
+    string page_token = 2;
+
+    // Optional. The standare list filter.
+    // Supported fields:
+    //     * `title` (i.e. `title:"bug"`)
+    //     * `content` (i.e. `content:"docs"`)
+    //     * `completed` (i.e. `completed` or `NOT compoeted`)
+    //     * `created_at` range (i.e. `created>="2026-01-01T00:00:00Z"`)
+    string filter = 3;
+
+    // Optional. A comma-separated list of fields to order by.
+    // Supported fields:
+    //     * `id`
+    //     * `title`
+    //     * `created_at`
+    //     * `updated_at`
+    // Append ` desc` to a field for descending order, e.g. `created_at desc`.
+    // Defaults to ascending order when no direction is supplied.
+    string order = 4;
 }
