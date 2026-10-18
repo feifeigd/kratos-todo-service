@@ -128,6 +128,7 @@ func (x *Server) GetGrpc() *Server_GRPC {
 
 type Data struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Database      *Data_Database         `protobuf:"bytes,1,opt,name=database,proto3" json:"database,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -160,6 +161,13 @@ func (x *Data) ProtoReflect() protoreflect.Message {
 // Deprecated: Use Data.ProtoReflect.Descriptor instead.
 func (*Data) Descriptor() ([]byte, []int) {
 	return file_conf_conf_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Data) GetDatabase() *Data_Database {
+	if x != nil {
+		return x.Database
+	}
+	return nil
 }
 
 type Server_GRPC struct {
@@ -283,6 +291,80 @@ func (x *Server_HTTP) GetTimeout() *durationpb.Duration {
 	return nil
 }
 
+// 数据库配置
+type Data_Database struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Driver name registered with database/sql， e.g. "mysql"
+	Driver string `protobuf:"bytes,1,opt,name=driver,proto3" json:"driver,omitempty"`
+	// Driver-specific DSN. Keep credentials out of version control.
+	Source string `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
+	// Log every generated statement. Development only.
+	Debug bool `protobuf:"varint,3,opt,name=debug,proto3" json:"debug,omitempty"`
+	// Create or update tables from the ent schema on startup.
+	// Leave false in production and apply migration as a separate, revieweed step.
+	AutoMigrate   bool `protobuf:"varint,4,opt,name=auto_migrate,json=autoMigrate,proto3" json:"auto_migrate,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Data_Database) Reset() {
+	*x = Data_Database{}
+	mi := &file_conf_conf_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Data_Database) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Data_Database) ProtoMessage() {}
+
+func (x *Data_Database) ProtoReflect() protoreflect.Message {
+	mi := &file_conf_conf_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Data_Database.ProtoReflect.Descriptor instead.
+func (*Data_Database) Descriptor() ([]byte, []int) {
+	return file_conf_conf_proto_rawDescGZIP(), []int{2, 0}
+}
+
+func (x *Data_Database) GetDriver() string {
+	if x != nil {
+		return x.Driver
+	}
+	return ""
+}
+
+func (x *Data_Database) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *Data_Database) GetDebug() bool {
+	if x != nil {
+		return x.Debug
+	}
+	return false
+}
+
+func (x *Data_Database) GetAutoMigrate() bool {
+	if x != nil {
+		return x.AutoMigrate
+	}
+	return false
+}
+
 var File_conf_conf_proto protoreflect.FileDescriptor
 
 const file_conf_conf_proto_rawDesc = "" +
@@ -302,8 +384,14 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\x04HTTP\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x123\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\x06\n" +
-	"\x04DataB(Z&kratos-todo-service/internal/conf;confb\x06proto3"
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xb2\x01\n" +
+	"\x04Data\x125\n" +
+	"\bdatabase\x18\x01 \x01(\v2\x19.kratos.api.Data.DatabaseR\bdatabase\x1as\n" +
+	"\bDatabase\x12\x16\n" +
+	"\x06driver\x18\x01 \x01(\tR\x06driver\x12\x16\n" +
+	"\x06source\x18\x02 \x01(\tR\x06source\x12\x14\n" +
+	"\x05debug\x18\x03 \x01(\bR\x05debug\x12!\n" +
+	"\fauto_migrate\x18\x04 \x01(\bR\vautoMigrateB(Z&kratos-todo-service/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_conf_proto_rawDescOnce sync.Once
@@ -317,27 +405,29 @@ func file_conf_conf_proto_rawDescGZIP() []byte {
 	return file_conf_conf_proto_rawDescData
 }
 
-var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_conf_conf_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_conf_conf_proto_goTypes = []any{
 	(*Bootstrap)(nil),           // 0: kratos.api.Bootstrap
 	(*Server)(nil),              // 1: kratos.api.Server
 	(*Data)(nil),                // 2: kratos.api.Data
 	(*Server_GRPC)(nil),         // 3: kratos.api.Server.GRPC
 	(*Server_HTTP)(nil),         // 4: kratos.api.Server.HTTP
-	(*durationpb.Duration)(nil), // 5: google.protobuf.Duration
+	(*Data_Database)(nil),       // 5: kratos.api.Data.Database
+	(*durationpb.Duration)(nil), // 6: google.protobuf.Duration
 }
 var file_conf_conf_proto_depIdxs = []int32{
 	1, // 0: kratos.api.Bootstrap.server:type_name -> kratos.api.Server
 	2, // 1: kratos.api.Bootstrap.data:type_name -> kratos.api.Data
 	4, // 2: kratos.api.Server.http:type_name -> kratos.api.Server.HTTP
 	3, // 3: kratos.api.Server.grpc:type_name -> kratos.api.Server.GRPC
-	5, // 4: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
-	5, // 5: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	6, // [6:6] is the sub-list for method output_type
-	6, // [6:6] is the sub-list for method input_type
-	6, // [6:6] is the sub-list for extension type_name
-	6, // [6:6] is the sub-list for extension extendee
-	0, // [0:6] is the sub-list for field type_name
+	5, // 4: kratos.api.Data.database:type_name -> kratos.api.Data.Database
+	6, // 5: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
+	6, // 6: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
+	7, // [7:7] is the sub-list for method output_type
+	7, // [7:7] is the sub-list for method input_type
+	7, // [7:7] is the sub-list for extension type_name
+	7, // [7:7] is the sub-list for extension extendee
+	0, // [0:7] is the sub-list for field type_name
 }
 
 func init() { file_conf_conf_proto_init() }
@@ -351,7 +441,7 @@ func file_conf_conf_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_conf_conf_proto_rawDesc), len(file_conf_conf_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

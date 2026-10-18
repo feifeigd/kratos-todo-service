@@ -36,5 +36,12 @@ message Data {
         string driver = 1;
         // Driver-specific DSN. Keep credentials out of version control.
         string source = 2;
+        // Log every generated statement. Development only.
+        bool debug = 3;
+        // Create or update tables from the ent schema on startup. 
+        // Leave false in production and apply migration as a separate, revieweed step.
+        bool auto_migrate = 4;
     }
+
+    Database database = 1;
 }
