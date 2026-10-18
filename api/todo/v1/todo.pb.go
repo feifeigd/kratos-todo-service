@@ -435,11 +435,12 @@ const file_todo_v1_todo_proto_rawDesc = "" +
 	"TodoStatus\x12\x1b\n" +
 	"\x17TODO_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12TODO_STATUS_ACTIVE\x10\x01\x12\x17\n" +
-	"\x13TODO_STATUS_DELETED\x10\x022\xb7\x01\n" +
+	"\x13TODO_STATUS_DELETED\x10\x022\x82\x02\n" +
 	"\vTodoService\x12V\n" +
 	"\n" +
 	"CreateTodo\x12\x1a.todo.v1.CreateTodoRequest\x1a\r.todo.v1.Todo\"\x1d\x82\xd3\xe4\x93\x02\x17:\x04todo\"\x0fv1/todos/create\x12P\n" +
-	"\tListTodos\x12\x19.todo.v1.ListTodosRequest\x1a\x10.todo.v1.TodoSet\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/todos/listB$Z\"kratos-todo-service/api/todo/v1;v1b\x06proto3"
+	"\tListTodos\x12\x19.todo.v1.ListTodosRequest\x1a\x10.todo.v1.TodoSet\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/todos/list\x12I\n" +
+	"\aGetTodo\x12\x17.todo.v1.GetTodoRequest\x1a\r.todo.v1.Todo\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/todos/{id}B$Z\"kratos-todo-service/api/todo/v1;v1b\x06proto3"
 
 var (
 	file_todo_v1_todo_proto_rawDescOnce sync.Once
@@ -472,10 +473,12 @@ var file_todo_v1_todo_proto_depIdxs = []int32{
 	1, // 4: todo.v1.CreateTodoRequest.todo:type_name -> todo.v1.Todo
 	3, // 5: todo.v1.TodoService.CreateTodo:input_type -> todo.v1.CreateTodoRequest
 	5, // 6: todo.v1.TodoService.ListTodos:input_type -> todo.v1.ListTodosRequest
-	1, // 7: todo.v1.TodoService.CreateTodo:output_type -> todo.v1.Todo
-	2, // 8: todo.v1.TodoService.ListTodos:output_type -> todo.v1.TodoSet
-	7, // [7:9] is the sub-list for method output_type
-	5, // [5:7] is the sub-list for method input_type
+	4, // 7: todo.v1.TodoService.GetTodo:input_type -> todo.v1.GetTodoRequest
+	1, // 8: todo.v1.TodoService.CreateTodo:output_type -> todo.v1.Todo
+	2, // 9: todo.v1.TodoService.ListTodos:output_type -> todo.v1.TodoSet
+	1, // 10: todo.v1.TodoService.GetTodo:output_type -> todo.v1.Todo
+	8, // [8:11] is the sub-list for method output_type
+	5, // [5:8] is the sub-list for method input_type
 	5, // [5:5] is the sub-list for extension type_name
 	5, // [5:5] is the sub-list for extension extendee
 	0, // [0:5] is the sub-list for field type_name

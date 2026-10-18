@@ -18,6 +18,7 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationTodoServiceCreateTodo = "/todo.v1.TodoService/CreateTodo"
+const OperationTodoServiceGetTodo = "/todo.v1.TodoService/GetTodo"
 const OperationTodoServiceListTodos = "/todo.v1.TodoService/ListTodos"
 
 type TodoServiceHTTPServer interface {
@@ -25,6 +26,7 @@ type TodoServiceHTTPServer interface {
 	// with the server-assigned id, created_at, and updated_at populated.
 	// Returns INVALID_ARGUMENT if the request payload fails validation.
 	CreateTodo(context.Context, *CreateTodoRequest) (*Todo, error)
+	GetTodo(context.Context, *GetTodoRequest) (*Todo, error)
 	// ListTodos ListTodos returns a page of todo items, optionally filtered and ordered.
 	// Use the next_page_token from TodoSet to retrieve subsequent pages.
 	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
@@ -35,6 +37,7 @@ func RegisterTodoServiceHTTPServer(s *http.Server, srv TodoServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("POST", "v1/todos/create", _TodoService_CreateTodo0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/todos/list", _TodoService_ListTodos0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/todos/{id}", _TodoService_GetTodo0_HTTP_Handler(srv))
 }
 
 func _TodoService_CreateTodo0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx http.Context) error {
@@ -78,11 +81,34 @@ func _TodoService_ListTodos0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx ht
 	}
 }
 
+func _TodoService_GetTodo0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in GetTodoRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationTodoServiceGetTodo)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.GetTodo(ctx, req.(*GetTodoRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Todo)
+		return ctx.Result(200, reply)
+	}
+}
+
 type TodoServiceHTTPClient interface {
 	// CreateTodo CreateTodo creates a new todo item and returns the persisted record
 	// with the server-assigned id, created_at, and updated_at populated.
 	// Returns INVALID_ARGUMENT if the request payload fails validation.
 	CreateTodo(ctx context.Context, req *CreateTodoRequest, opts ...http.CallOption) (rsp *Todo, err error)
+	GetTodo(ctx context.Context, req *GetTodoRequest, opts ...http.CallOption) (rsp *Todo, err error)
 	// ListTodos ListTodos returns a page of todo items, optionally filtered and ordered.
 	// Use the next_page_token from TodoSet to retrieve subsequent pages.
 	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
@@ -111,6 +137,22 @@ func (c *TodoServiceHTTPClientImpl) CreateTodo(ctx context.Context, in *CreateTo
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in.Todo, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *TodoServiceHTTPClientImpl) GetTodo(ctx context.Context, in *GetTodoRequest, opts ...http.CallOption) (*Todo, error) {
+	var out Todo
+	pattern := "/v1/todos/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationTodoServiceGetTodo),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

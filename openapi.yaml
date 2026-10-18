@@ -41,6 +41,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/todo.v1.TodoSet'
+    /v1/todos/{id}:
+        get:
+            tags:
+                - TodoService
+            operationId: TodoService_GetTodo
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.Todo'
     v1/todos/create:
         post:
             tags:

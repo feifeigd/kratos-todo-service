@@ -32,6 +32,12 @@ service TodoService {
             get: "/v1/todos/list"
         };
     }
+
+    rpc GetTodo(GetTodoRequest)returns(Todo){
+        option(google.api.http)={
+            get: "/v1/todos/{id}"
+        };
+    }
 }
 
 // TodoStatus is the lifecycle state of a todo item.
