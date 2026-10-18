@@ -101,5 +101,5 @@ message ListTodosRequest {
     //     * `updated_at`
     // Append ` desc` to a field for descending order, e.g. `created_at desc`.
     // Defaults to ascending order when no direction is supplied.
-    string order = 4;
+    string order_by = 4;
 }

@@ -340,7 +340,7 @@ type ListTodosRequest struct {
 	//     * `updated_at`
 	// Append ` desc` to a field for descending order, e.g. `created_at desc`.
 	// Defaults to ascending order when no direction is supplied.
-	Order         string `protobuf:"bytes,4,opt,name=order,proto3" json:"order,omitempty"`
+	OrderBy       string `protobuf:"bytes,4,opt,name=order_by,json=orderBy,proto3" json:"order_by,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -396,9 +396,9 @@ func (x *ListTodosRequest) GetFilter() string {
 	return ""
 }
 
-func (x *ListTodosRequest) GetOrder() string {
+func (x *ListTodosRequest) GetOrderBy() string {
 	if x != nil {
-		return x.Order
+		return x.OrderBy
 	}
 	return ""
 }
@@ -424,13 +424,13 @@ const file_todo_v1_todo_proto_rawDesc = "" +
 	"\x11CreateTodoRequest\x12'\n" +
 	"\x04todo\x18\x01 \x01(\v2\r.todo.v1.TodoB\x04\xe2A\x01\x02R\x04todo\"&\n" +
 	"\x0eGetTodoRequest\x12\x14\n" +
-	"\x02id\x18\x01 \x01(\tB\x04\xe2A\x01\x02R\x02id\"|\n" +
+	"\x02id\x18\x01 \x01(\tB\x04\xe2A\x01\x02R\x02id\"\x81\x01\n" +
 	"\x10ListTodosRequest\x12\x1b\n" +
 	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tR\tpageToken\x12\x16\n" +
-	"\x06filter\x18\x03 \x01(\tR\x06filter\x12\x14\n" +
-	"\x05order\x18\x04 \x01(\tR\x05order*Z\n" +
+	"\x06filter\x18\x03 \x01(\tR\x06filter\x12\x19\n" +
+	"\border_by\x18\x04 \x01(\tR\aorderBy*Z\n" +
 	"\n" +
 	"TodoStatus\x12\x1b\n" +
 	"\x17TODO_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +

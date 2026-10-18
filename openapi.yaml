@@ -29,7 +29,7 @@ paths:
                   description: "Optional. The standare list filter.\r\n Supported fields:\r\n     * `title` (i.e. `title:\"bug\"`)\r\n     * `content` (i.e. `content:\"docs\"`)\r\n     * `completed` (i.e. `completed` or `NOT compoeted`)\r\n     * `created_at` range (i.e. `created>=\"2026-01-01T00:00:00Z\"`)"
                   schema:
                     type: string
-                - name: order
+                - name: orderBy
                   in: query
                   description: "Optional. A comma-separated list of fields to order by.\r\n Supported fields:\r\n     * `id`\r\n     * `title`\r\n     * `created_at`\r\n     * `updated_at`\r\n Append ` desc` to a field for descending order, e.g. `created_at desc`.\r\n Defaults to ascending order when no direction is supplied."
                   schema:

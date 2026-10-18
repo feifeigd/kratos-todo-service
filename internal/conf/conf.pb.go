@@ -302,9 +302,15 @@ type Data_Database struct {
 	Debug bool `protobuf:"varint,3,opt,name=debug,proto3" json:"debug,omitempty"`
 	// Create or update tables from the ent schema on startup.
 	// Leave false in production and apply migration as a separate, revieweed step.
-	AutoMigrate   bool `protobuf:"varint,4,opt,name=auto_migrate,json=autoMigrate,proto3" json:"auto_migrate,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	AutoMigrate bool `protobuf:"varint,4,opt,name=auto_migrate,json=autoMigrate,proto3" json:"auto_migrate,omitempty"`
+	// Maximum number of open connections to the database (0 = default 20).
+	MaxOpenConns int32 `protobuf:"varint,5,opt,name=max_open_conns,json=maxOpenConns,proto3" json:"max_open_conns,omitempty"`
+	// Maximum number of connections in the idle pool (0 = default 10).
+	MaxIdleConns int32 `protobuf:"varint,6,opt,name=max_idle_conns,json=maxIdleConns,proto3" json:"max_idle_conns,omitempty"`
+	// Maximum amount of time a connection may be reused (0 = default 1h).
+	ConnMaxLifetime *durationpb.Duration `protobuf:"bytes,7,opt,name=conn_max_lifetime,json=connMaxLifetime,proto3" json:"conn_max_lifetime,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Data_Database) Reset() {
@@ -365,6 +371,27 @@ func (x *Data_Database) GetAutoMigrate() bool {
 	return false
 }
 
+func (x *Data_Database) GetMaxOpenConns() int32 {
+	if x != nil {
+		return x.MaxOpenConns
+	}
+	return 0
+}
+
+func (x *Data_Database) GetMaxIdleConns() int32 {
+	if x != nil {
+		return x.MaxIdleConns
+	}
+	return 0
+}
+
+func (x *Data_Database) GetConnMaxLifetime() *durationpb.Duration {
+	if x != nil {
+		return x.ConnMaxLifetime
+	}
+	return nil
+}
+
 var File_conf_conf_proto protoreflect.FileDescriptor
 
 const file_conf_conf_proto_rawDesc = "" +
@@ -384,14 +411,17 @@ const file_conf_conf_proto_rawDesc = "" +
 	"\x04HTTP\x12\x18\n" +
 	"\anetwork\x18\x01 \x01(\tR\anetwork\x12\x12\n" +
 	"\x04addr\x18\x02 \x01(\tR\x04addr\x123\n" +
-	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xb2\x01\n" +
+	"\atimeout\x18\x03 \x01(\v2\x19.google.protobuf.DurationR\atimeout\"\xc6\x02\n" +
 	"\x04Data\x125\n" +
-	"\bdatabase\x18\x01 \x01(\v2\x19.kratos.api.Data.DatabaseR\bdatabase\x1as\n" +
+	"\bdatabase\x18\x01 \x01(\v2\x19.kratos.api.Data.DatabaseR\bdatabase\x1a\x86\x02\n" +
 	"\bDatabase\x12\x16\n" +
 	"\x06driver\x18\x01 \x01(\tR\x06driver\x12\x16\n" +
 	"\x06source\x18\x02 \x01(\tR\x06source\x12\x14\n" +
 	"\x05debug\x18\x03 \x01(\bR\x05debug\x12!\n" +
-	"\fauto_migrate\x18\x04 \x01(\bR\vautoMigrateB(Z&kratos-todo-service/internal/conf;confb\x06proto3"
+	"\fauto_migrate\x18\x04 \x01(\bR\vautoMigrate\x12$\n" +
+	"\x0emax_open_conns\x18\x05 \x01(\x05R\fmaxOpenConns\x12$\n" +
+	"\x0emax_idle_conns\x18\x06 \x01(\x05R\fmaxIdleConns\x12E\n" +
+	"\x11conn_max_lifetime\x18\a \x01(\v2\x19.google.protobuf.DurationR\x0fconnMaxLifetimeB(Z&kratos-todo-service/internal/conf;confb\x06proto3"
 
 var (
 	file_conf_conf_proto_rawDescOnce sync.Once
@@ -423,11 +453,12 @@ var file_conf_conf_proto_depIdxs = []int32{
 	5, // 4: kratos.api.Data.database:type_name -> kratos.api.Data.Database
 	6, // 5: kratos.api.Server.GRPC.timeout:type_name -> google.protobuf.Duration
 	6, // 6: kratos.api.Server.HTTP.timeout:type_name -> google.protobuf.Duration
-	7, // [7:7] is the sub-list for method output_type
-	7, // [7:7] is the sub-list for method input_type
-	7, // [7:7] is the sub-list for extension type_name
-	7, // [7:7] is the sub-list for extension extendee
-	0, // [0:7] is the sub-list for field type_name
+	6, // 7: kratos.api.Data.Database.conn_max_lifetime:type_name -> google.protobuf.Duration
+	8, // [8:8] is the sub-list for method output_type
+	8, // [8:8] is the sub-list for method input_type
+	8, // [8:8] is the sub-list for extension type_name
+	8, // [8:8] is the sub-list for extension extendee
+	0, // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_conf_conf_proto_init() }

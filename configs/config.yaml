@@ -13,6 +13,11 @@ data:
     # changes as a separate reviewed step.
     debug: true
     auto_migrate: true
+    # 连接池配置;配 0 或未配置时使用程序内默认值(20 / 10 / 1h)。
+    # conn_max_lifetime 要小于 MySQL wait_timeout(默认 28800s)。
+    max_open_conns: 20
+    max_idle_conns: 10
+    conn_max_lifetime: 3600s
   redis:
     addr: ${REDIS_ADDR:127.0.0.1:6379}
     read_timeout: 0.2s

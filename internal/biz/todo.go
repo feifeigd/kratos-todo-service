@@ -26,6 +26,7 @@ const (
 )
 
 type (
+
 	// Todo is a Todo model.
 	Todo struct {
 		ID        uuid.UUID
@@ -38,6 +39,8 @@ type (
 	}
 
 	TodoRepo interface {
+		FindByID(context.Context, uuid.UUID) (*Todo, error)
+		ListTodos(context.Context, ...ListOption) ([]*Todo, error)
 		CreateTodo(context.Context, *Todo) (*Todo, error)
 	}
 
@@ -48,6 +51,17 @@ type (
 
 func NewTodoUsecase(repo TodoRepo) *TodoUsecase {
 	return &TodoUsecase{repo: repo}
+}
+
+func (uc *TodoUsecase) GetTodo(ctx context.Context, id uuid.UUID) (*Todo, error) {
+	if id == uuid.Nil {
+		return nil, ErrTodoInvalidArgument
+	}
+	return uc.repo.FindByID(ctx, id)
+}
+
+func (uc *TodoUsecase) ListTodos(ctx context.Context, opts ...ListOption) ([]*Todo, error) {
+	return uc.repo.ListTodos(ctx, opts...)
 }
 
 func (uc *TodoUsecase) CreateTodo(ctx context.Context, todo *Todo) (*Todo, error) {

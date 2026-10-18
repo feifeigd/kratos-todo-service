@@ -6,7 +6,14 @@ import (
 	"kratos-todo-service/internal/biz"
 
 	"github.com/google/uuid"
+	"go.einride.tech/aip/filtering"
+	"go.einride.tech/aip/ordering"
+	"go.einride.tech/aip/pagination"
 	"google.golang.org/protobuf/types/known/timestamppb"
+)
+
+const (
+	defaultPageSize = 20
 )
 
 type TodoService struct {
@@ -28,6 +35,81 @@ func (s *TodoService) CreateTodo(ctx context.Context, req *v1.CreateTodoRequest)
 		return nil, err
 	}
 	return convertTodoReply(todo), nil
+}
+
+func (s *TodoService) GetTodo(ctx context.Context, req *v1.GetTodoRequest) (*v1.Todo, error) {
+	id, err := parseTodoID(req.GetId())
+	if err != nil {
+		return nil, err
+	}
+	todo, err := s.uc.GetTodo(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return convertTodoReply(todo), nil
+}
+
+func (s *TodoService) ListTodos(ctx context.Context, req *v1.ListTodosRequest) (*v1.TodoSet, error) {
+	declarations, err := filtering.NewDeclarations(
+		filtering.DeclareStandardFunctions(),
+		filtering.DeclareIdent("id", filtering.TypeString),
+		filtering.DeclareIdent("title", filtering.TypeString),
+		filtering.DeclareIdent("content", filtering.TypeString),
+		filtering.DeclareIdent("completed", filtering.TypeBool),
+		filtering.DeclareIdent("created_at", filtering.TypeTimestamp),
+		filtering.DeclareIdent("updated_at", filtering.TypeTimestamp),
+	)
+	if err != nil {
+		return nil, err
+	}
+	filter, err := filtering.ParseFilter(req, declarations)
+	if err != nil {
+		return nil, err
+	}
+	pageToken, err := pagination.ParsePageToken(req)
+	if err != nil {
+		return nil, err
+	}
+	orderBy, err := ordering.ParseOrderBy(req)
+	if err != nil {
+		return nil, err
+	}
+	if err := orderBy.ValidateForPaths("id", "title", "created_at", "updated_at"); err != nil {
+		return nil, err
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = defaultPageSize
+	}
+
+	todos, err := s.uc.ListTodos(ctx,
+		biz.ListFilter(filter),
+		biz.ListOrderBy(orderBy),
+		biz.ListLimit(int(req.PageSize)),
+		biz.ListOffset(int(pageToken.Offset)),
+	)
+	if err != nil {
+		return nil, err
+	}
+	set := &v1.TodoSet{
+		Todos: make([]*v1.Todo, 0, len(todos)),
+	}
+	if len(todos) >= int(req.PageSize) {
+		set.NextPageToken = pageToken.Next(req).String()
+	}
+	for _, todo := range todos {
+		set.Todos = append(set.Todos, convertTodoReply(todo))
+	}
+
+	return set, nil
+}
+
+// 验证输入的uuid格式
+func parseTodoID(id string) (uuid.UUID, error) {
+	parsed, err := uuid.Parse(id)
+	if err != nil {
+		return uuid.Nil, biz.ErrTodoInvalidArgument
+	}
+	return parsed, nil
 }
 
 // convertTodo parses an incoming proto into a DO.

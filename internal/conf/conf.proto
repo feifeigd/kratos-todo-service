@@ -41,6 +41,12 @@ message Data {
         // Create or update tables from the ent schema on startup. 
         // Leave false in production and apply migration as a separate, revieweed step.
         bool auto_migrate = 4;
+        // Maximum number of open connections to the database (0 = default 20).
+        int32 max_open_conns = 5;
+        // Maximum number of connections in the idle pool (0 = default 10).
+        int32 max_idle_conns = 6;
+        // Maximum amount of time a connection may be reused (0 = default 1h).
+        google.protobuf.Duration conn_max_lifetime = 7;
     }
 
     Database database = 1;
