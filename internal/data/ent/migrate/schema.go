@@ -16,6 +16,7 @@ var (
 		{Name: "title", Type: field.TypeString, Default: ""},
 		{Name: "content", Type: field.TypeString, Default: ""},
 		{Name: "completed", Type: field.TypeBool, Default: false},
+		{Name: "status", Type: field.TypeInt32, Default: 1},
 	}
 	// TodosTable holds the schema information for the "todos" table.
 	TodosTable = &schema.Table{

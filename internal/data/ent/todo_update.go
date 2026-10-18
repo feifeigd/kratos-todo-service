@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"kratos-todo-service/internal/biz"
 	"kratos-todo-service/internal/data/ent/predicate"
 	"kratos-todo-service/internal/data/ent/todo"
 	"time"
@@ -76,6 +77,27 @@ func (_u *TodoUpdate) SetNillableCompleted(v *bool) *TodoUpdate {
 	return _u
 }
 
+// SetStatus sets the "status" field.
+func (_u *TodoUpdate) SetStatus(v biz.TodoStatus) *TodoUpdate {
+	_u.mutation.ResetStatus()
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *TodoUpdate) SetNillableStatus(v *biz.TodoStatus) *TodoUpdate {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// AddStatus adds value to the "status" field.
+func (_u *TodoUpdate) AddStatus(v biz.TodoStatus) *TodoUpdate {
+	_u.mutation.AddStatus(v)
+	return _u
+}
+
 // Mutation returns the TodoMutation object of the builder.
 func (_u *TodoUpdate) Mutation() *TodoMutation {
 	return _u.mutation
@@ -137,6 +159,12 @@ func (_u *TodoUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if value, ok := _u.mutation.Completed(); ok {
 		_spec.SetField(todo.FieldCompleted, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(todo.FieldStatus, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedStatus(); ok {
+		_spec.AddField(todo.FieldStatus, field.TypeInt32, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -203,6 +231,27 @@ func (_u *TodoUpdateOne) SetNillableCompleted(v *bool) *TodoUpdateOne {
 	if v != nil {
 		_u.SetCompleted(*v)
 	}
+	return _u
+}
+
+// SetStatus sets the "status" field.
+func (_u *TodoUpdateOne) SetStatus(v biz.TodoStatus) *TodoUpdateOne {
+	_u.mutation.ResetStatus()
+	_u.mutation.SetStatus(v)
+	return _u
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_u *TodoUpdateOne) SetNillableStatus(v *biz.TodoStatus) *TodoUpdateOne {
+	if v != nil {
+		_u.SetStatus(*v)
+	}
+	return _u
+}
+
+// AddStatus adds value to the "status" field.
+func (_u *TodoUpdateOne) AddStatus(v biz.TodoStatus) *TodoUpdateOne {
+	_u.mutation.AddStatus(v)
 	return _u
 }
 
@@ -297,6 +346,12 @@ func (_u *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) {
 	}
 	if value, ok := _u.mutation.Completed(); ok {
 		_spec.SetField(todo.FieldCompleted, field.TypeBool, value)
+	}
+	if value, ok := _u.mutation.Status(); ok {
+		_spec.SetField(todo.FieldStatus, field.TypeInt32, value)
+	}
+	if value, ok := _u.mutation.AddedStatus(); ok {
+		_spec.AddField(todo.FieldStatus, field.TypeInt32, value)
 	}
 	_node = &Todo{config: _u.config}
 	_spec.Assign = _node.assignValues

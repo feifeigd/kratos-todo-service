@@ -4,6 +4,7 @@ package ent
 
 import (
 	"fmt"
+	"kratos-todo-service/internal/biz"
 	"kratos-todo-service/internal/data/ent/todo"
 	"strings"
 	"time"
@@ -27,7 +28,9 @@ type Todo struct {
 	// Content holds the value of the "content" field.
 	Content string `json:"content,omitempty"`
 	// Completed holds the value of the "completed" field.
-	Completed    bool `json:"completed,omitempty"`
+	Completed bool `json:"completed,omitempty"`
+	// Status holds the value of the "status" field.
+	Status       biz.TodoStatus `json:"status,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -38,6 +41,8 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case todo.FieldCompleted:
 			values[i] = new(sql.NullBool)
+		case todo.FieldStatus:
+			values[i] = new(sql.NullInt64)
 		case todo.FieldTitle, todo.FieldContent:
 			values[i] = new(sql.NullString)
 		case todo.FieldCreatedAt, todo.FieldUpdatedAt:
@@ -95,6 +100,12 @@ func (_m *Todo) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				_m.Completed = value.Bool
 			}
+		case todo.FieldStatus:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				_m.Status = biz.TodoStatus(value.Int64)
+			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
 		}
@@ -145,6 +156,9 @@ func (_m *Todo) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("completed=")
 	builder.WriteString(fmt.Sprintf("%v", _m.Completed))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Status))
 	builder.WriteByte(')')
 	return builder.String()
 }

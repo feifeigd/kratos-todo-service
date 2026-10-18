@@ -3,6 +3,7 @@
 package todo
 
 import (
+	"kratos-todo-service/internal/biz"
 	"kratos-todo-service/internal/data/ent/predicate"
 	"time"
 
@@ -78,6 +79,12 @@ func Content(v string) predicate.Todo {
 // Completed applies equality check predicate on the "completed" field. It's identical to CompletedEQ.
 func Completed(v bool) predicate.Todo {
 	return predicate.Todo(sql.FieldEQ(FieldCompleted, v))
+}
+
+// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
+func Status(v biz.TodoStatus) predicate.Todo {
+	vc := int32(v)
+	return predicate.Todo(sql.FieldEQ(FieldStatus, vc))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -298,6 +305,60 @@ func CompletedEQ(v bool) predicate.Todo {
 // CompletedNEQ applies the NEQ predicate on the "completed" field.
 func CompletedNEQ(v bool) predicate.Todo {
 	return predicate.Todo(sql.FieldNEQ(FieldCompleted, v))
+}
+
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v biz.TodoStatus) predicate.Todo {
+	vc := int32(v)
+	return predicate.Todo(sql.FieldEQ(FieldStatus, vc))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v biz.TodoStatus) predicate.Todo {
+	vc := int32(v)
+	return predicate.Todo(sql.FieldNEQ(FieldStatus, vc))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...biz.TodoStatus) predicate.Todo {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int32(vs[i])
+	}
+	return predicate.Todo(sql.FieldIn(FieldStatus, v...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...biz.TodoStatus) predicate.Todo {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int32(vs[i])
+	}
+	return predicate.Todo(sql.FieldNotIn(FieldStatus, v...))
+}
+
+// StatusGT applies the GT predicate on the "status" field.
+func StatusGT(v biz.TodoStatus) predicate.Todo {
+	vc := int32(v)
+	return predicate.Todo(sql.FieldGT(FieldStatus, vc))
+}
+
+// StatusGTE applies the GTE predicate on the "status" field.
+func StatusGTE(v biz.TodoStatus) predicate.Todo {
+	vc := int32(v)
+	return predicate.Todo(sql.FieldGTE(FieldStatus, vc))
+}
+
+// StatusLT applies the LT predicate on the "status" field.
+func StatusLT(v biz.TodoStatus) predicate.Todo {
+	vc := int32(v)
+	return predicate.Todo(sql.FieldLT(FieldStatus, vc))
+}
+
+// StatusLTE applies the LTE predicate on the "status" field.
+func StatusLTE(v biz.TodoStatus) predicate.Todo {
+	vc := int32(v)
+	return predicate.Todo(sql.FieldLTE(FieldStatus, vc))
 }
 
 // And groups predicates with the AND operator between them.

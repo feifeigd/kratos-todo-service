@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"kratos-todo-service/internal/biz"
 	"kratos-todo-service/internal/data/ent/predicate"
 	"kratos-todo-service/internal/data/ent/todo"
 	"sync"
@@ -39,6 +40,8 @@ type TodoMutation struct {
 	title         *string
 	content       *string
 	completed     *bool
+	status        *biz.TodoStatus
+	addstatus     *biz.TodoStatus
 	clearedFields map[string]struct{}
 	done          bool
 	oldValue      func(context.Context) (*Todo, error)
@@ -329,6 +332,62 @@ func (m *TodoMutation) ResetCompleted() {
 	m.completed = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *TodoMutation) SetStatus(bs biz.TodoStatus) {
+	m.status = &bs
+	m.addstatus = nil
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *TodoMutation) Status() (r biz.TodoStatus, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the Todo entity.
+// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TodoMutation) OldStatus(ctx context.Context) (v biz.TodoStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// AddStatus adds bs to the "status" field.
+func (m *TodoMutation) AddStatus(bs biz.TodoStatus) {
+	if m.addstatus != nil {
+		*m.addstatus += bs
+	} else {
+		m.addstatus = &bs
+	}
+}
+
+// AddedStatus returns the value that was added to the "status" field in this mutation.
+func (m *TodoMutation) AddedStatus() (r biz.TodoStatus, exists bool) {
+	v := m.addstatus
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *TodoMutation) ResetStatus() {
+	m.status = nil
+	m.addstatus = nil
+}
+
 // Where appends a list predicates to the TodoMutation builder.
 func (m *TodoMutation) Where(ps ...predicate.Todo) {
 	m.predicates = append(m.predicates, ps...)
@@ -363,7 +422,7 @@ func (m *TodoMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.created_at != nil {
 		fields = append(fields, todo.FieldCreatedAt)
 	}
@@ -378,6 +437,9 @@ func (m *TodoMutation) Fields() []string {
 	}
 	if m.completed != nil {
 		fields = append(fields, todo.FieldCompleted)
+	}
+	if m.status != nil {
+		fields = append(fields, todo.FieldStatus)
 	}
 	return fields
 }
@@ -397,6 +459,8 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 		return m.Content()
 	case todo.FieldCompleted:
 		return m.Completed()
+	case todo.FieldStatus:
+		return m.Status()
 	}
 	return nil, false
 }
@@ -416,6 +480,8 @@ func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldContent(ctx)
 	case todo.FieldCompleted:
 		return m.OldCompleted(ctx)
+	case todo.FieldStatus:
+		return m.OldStatus(ctx)
 	}
 	return nil, fmt.Errorf("unknown Todo field %s", name)
 }
@@ -460,6 +526,13 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetCompleted(v)
 		return nil
+	case todo.FieldStatus:
+		v, ok := value.(biz.TodoStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)
 }
@@ -467,13 +540,21 @@ func (m *TodoMutation) SetField(name string, value ent.Value) error {
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
 func (m *TodoMutation) AddedFields() []string {
-	return nil
+	var fields []string
+	if m.addstatus != nil {
+		fields = append(fields, todo.FieldStatus)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
 func (m *TodoMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case todo.FieldStatus:
+		return m.AddedStatus()
+	}
 	return nil, false
 }
 
@@ -482,6 +563,13 @@ func (m *TodoMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *TodoMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case todo.FieldStatus:
+		v, ok := value.(biz.TodoStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddStatus(v)
+		return nil
 	}
 	return fmt.Errorf("unknown Todo numeric field %s", name)
 }
@@ -523,6 +611,9 @@ func (m *TodoMutation) ResetField(name string) error {
 		return nil
 	case todo.FieldCompleted:
 		m.ResetCompleted()
+		return nil
+	case todo.FieldStatus:
+		m.ResetStatus()
 		return nil
 	}
 	return fmt.Errorf("unknown Todo field %s", name)

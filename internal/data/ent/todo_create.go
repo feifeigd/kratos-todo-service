@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"kratos-todo-service/internal/biz"
 	"kratos-todo-service/internal/data/ent/todo"
 	"time"
 
@@ -91,6 +92,20 @@ func (_c *TodoCreate) SetNillableCompleted(v *bool) *TodoCreate {
 	return _c
 }
 
+// SetStatus sets the "status" field.
+func (_c *TodoCreate) SetStatus(v biz.TodoStatus) *TodoCreate {
+	_c.mutation.SetStatus(v)
+	return _c
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (_c *TodoCreate) SetNillableStatus(v *biz.TodoStatus) *TodoCreate {
+	if v != nil {
+		_c.SetStatus(*v)
+	}
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *TodoCreate) SetID(v uuid.UUID) *TodoCreate {
 	_c.mutation.SetID(v)
@@ -160,6 +175,10 @@ func (_c *TodoCreate) defaults() {
 		v := todo.DefaultCompleted
 		_c.mutation.SetCompleted(v)
 	}
+	if _, ok := _c.mutation.Status(); !ok {
+		v := todo.DefaultStatus
+		_c.mutation.SetStatus(v)
+	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := todo.DefaultID()
 		_c.mutation.SetID(v)
@@ -182,6 +201,9 @@ func (_c *TodoCreate) check() error {
 	}
 	if _, ok := _c.mutation.Completed(); !ok {
 		return &ValidationError{Name: "completed", err: errors.New(`ent: missing required field "Todo.completed"`)}
+	}
+	if _, ok := _c.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Todo.status"`)}
 	}
 	return nil
 }
@@ -237,6 +259,10 @@ func (_c *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Completed(); ok {
 		_spec.SetField(todo.FieldCompleted, field.TypeBool, value)
 		_node.Completed = value
+	}
+	if value, ok := _c.mutation.Status(); ok {
+		_spec.SetField(todo.FieldStatus, field.TypeInt32, value)
+		_node.Status = value
 	}
 	return _node, _spec
 }

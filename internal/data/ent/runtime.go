@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"kratos-todo-service/internal/biz"
 	"kratos-todo-service/internal/data/ent/schema"
 	"kratos-todo-service/internal/data/ent/todo"
 	"time"
@@ -43,6 +44,10 @@ func init() {
 	todoDescCompleted := todoFields[2].Descriptor()
 	// todo.DefaultCompleted holds the default value on creation for the completed field.
 	todo.DefaultCompleted = todoDescCompleted.Default.(bool)
+	// todoDescStatus is the schema descriptor for status field.
+	todoDescStatus := todoFields[3].Descriptor()
+	// todo.DefaultStatus holds the default value on creation for the status field.
+	todo.DefaultStatus = biz.TodoStatus(todoDescStatus.Default.(int32))
 	// todoDescID is the schema descriptor for id field.
 	todoDescID := todoMixinFields0[0].Descriptor()
 	// todo.DefaultID holds the default value on creation for the id field.
