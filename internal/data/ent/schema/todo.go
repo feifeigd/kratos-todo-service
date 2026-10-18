@@ -5,6 +5,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 )
 
 // 数据库表 todo 定义
@@ -30,5 +31,12 @@ func (Todo) Fields() []ent.Field {
 		// Stored as an integer bound to the domain type,
 		// whose values match the api enum.
 		field.Int32("status").GoType(biz.TodoStatus(biz.TodoStatusUnspecified)).Default(int32(biz.TodoStatusActive)),
+	}
+}
+
+// 表索引
+func (Todo) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("status"),
 	}
 }

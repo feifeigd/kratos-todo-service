@@ -30,5 +30,11 @@ message Server {
 }
 
 message Data {
-    
+    // 数据库配置
+    message Database {
+        // Driver name registered with database/sql， e.g. "mysql"
+        string driver = 1;
+        // Driver-specific DSN. Keep credentials out of version control.
+        string source = 2;
+    }
 }

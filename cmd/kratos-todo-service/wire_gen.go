@@ -20,7 +20,8 @@ import (
 
 // wireApp init kratos application.
 func wireApp(confServer *conf.Server, confData *conf.Data, logger *slog.Logger) (*kratos.App, func(), error) {
-	todoRepo := data.NewTodoRepo()
+	dataData := data.NewData(confData)
+	todoRepo := data.NewTodoRepo(dataData)
 	todoUsecase := biz.NewTodoUsecase(todoRepo)
 	todoService := service.NewTodoService(todoUsecase)
 	grpcServer := server.NewGRPCServer(confServer, todoService)

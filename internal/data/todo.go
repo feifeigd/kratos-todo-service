@@ -12,8 +12,13 @@ func toBiz(po *ent.Todo) *biz.Todo {
 		return nil
 	}
 	return &biz.Todo{
-		ID:    po.ID,
-		Title: po.Title,
+		ID:        po.ID,
+		Title:     po.Title,
+		Content:   po.Content,
+		Completed: po.Completed,
+		Status:    po.Status,
+		CreatedAt: po.CreatedAt,
+		UpdatedAt: po.UpdatedAt,
 	}
 }
 
@@ -21,8 +26,8 @@ type todoRepo struct {
 	data *Data
 }
 
-func NewTodoRepo() biz.TodoRepo {
-	return &todoRepo{}
+func NewTodoRepo(data *Data) biz.TodoRepo {
+	return &todoRepo{data: data}
 }
 
 func (r *todoRepo) CreateTodo(ctx context.Context, t *biz.Todo) (*biz.Todo, error) {

@@ -29,6 +29,11 @@ var (
 				Unique:  false,
 				Columns: []*schema.Column{TodosColumns[2]},
 			},
+			{
+				Name:    "todo_status",
+				Unique:  false,
+				Columns: []*schema.Column{TodosColumns[6]},
+			},
 		},
 	}
 	// Tables holds all the tables in the schema.
