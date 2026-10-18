@@ -11,13 +11,24 @@ var (
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "title", Type: field.TypeString, Default: ""},
+		{Name: "content", Type: field.TypeString, Default: ""},
+		{Name: "completed", Type: field.TypeBool, Default: false},
 	}
 	// TodosTable holds the schema information for the "todos" table.
 	TodosTable = &schema.Table{
 		Name:       "todos",
 		Columns:    TodosColumns,
 		PrimaryKey: []*schema.Column{TodosColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "todo_updated_at",
+				Unique:  false,
+				Columns: []*schema.Column{TodosColumns[2]},
+			},
+		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{

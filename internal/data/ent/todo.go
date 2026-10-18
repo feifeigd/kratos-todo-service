@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"kratos-todo-service/internal/data/ent/todo"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -17,8 +18,16 @@ type Todo struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Title holds the value of the "title" field.
-	Title        string `json:"title,omitempty"`
+	Title string `json:"title,omitempty"`
+	// Content holds the value of the "content" field.
+	Content string `json:"content,omitempty"`
+	// Completed holds the value of the "completed" field.
+	Completed    bool `json:"completed,omitempty"`
 	selectValues sql.SelectValues
 }
 
@@ -27,8 +36,12 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case todo.FieldTitle:
+		case todo.FieldCompleted:
+			values[i] = new(sql.NullBool)
+		case todo.FieldTitle, todo.FieldContent:
 			values[i] = new(sql.NullString)
+		case todo.FieldCreatedAt, todo.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		case todo.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
@@ -52,11 +65,35 @@ func (_m *Todo) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				_m.ID = *value
 			}
+		case todo.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				_m.CreatedAt = value.Time
+			}
+		case todo.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				_m.UpdatedAt = value.Time
+			}
 		case todo.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field title", values[i])
 			} else if value.Valid {
 				_m.Title = value.String
+			}
+		case todo.FieldContent:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field content", values[i])
+			} else if value.Valid {
+				_m.Content = value.String
+			}
+		case todo.FieldCompleted:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field completed", values[i])
+			} else if value.Valid {
+				_m.Completed = value.Bool
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -94,8 +131,20 @@ func (_m *Todo) String() string {
 	var builder strings.Builder
 	builder.WriteString("Todo(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", _m.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(_m.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(_m.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(_m.Title)
+	builder.WriteString(", ")
+	builder.WriteString("content=")
+	builder.WriteString(_m.Content)
+	builder.WriteString(", ")
+	builder.WriteString("completed=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Completed))
 	builder.WriteByte(')')
 	return builder.String()
 }

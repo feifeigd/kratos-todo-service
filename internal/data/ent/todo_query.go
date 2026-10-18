@@ -263,12 +263,12 @@ func (_q *TodoQuery) Clone() *TodoQuery {
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Todo.Query().
-//		GroupBy(todo.FieldTitle).
+//		GroupBy(todo.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (_q *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
@@ -286,11 +286,11 @@ func (_q *TodoQuery) GroupBy(field string, fields ...string) *TodoGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Todo.Query().
-//		Select(todo.FieldTitle).
+//		Select(todo.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (_q *TodoQuery) Select(fields ...string) *TodoSelect {
 	_q.ctx.Fields = append(_q.ctx.Fields, fields...)

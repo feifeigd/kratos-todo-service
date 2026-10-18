@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"kratos-todo-service/internal/data/ent/todo"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -20,6 +21,34 @@ type TodoCreate struct {
 	hooks    []Hook
 }
 
+// SetCreatedAt sets the "created_at" field.
+func (_c *TodoCreate) SetCreatedAt(v time.Time) *TodoCreate {
+	_c.mutation.SetCreatedAt(v)
+	return _c
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (_c *TodoCreate) SetNillableCreatedAt(v *time.Time) *TodoCreate {
+	if v != nil {
+		_c.SetCreatedAt(*v)
+	}
+	return _c
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (_c *TodoCreate) SetUpdatedAt(v time.Time) *TodoCreate {
+	_c.mutation.SetUpdatedAt(v)
+	return _c
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (_c *TodoCreate) SetNillableUpdatedAt(v *time.Time) *TodoCreate {
+	if v != nil {
+		_c.SetUpdatedAt(*v)
+	}
+	return _c
+}
+
 // SetTitle sets the "title" field.
 func (_c *TodoCreate) SetTitle(v string) *TodoCreate {
 	_c.mutation.SetTitle(v)
@@ -30,6 +59,34 @@ func (_c *TodoCreate) SetTitle(v string) *TodoCreate {
 func (_c *TodoCreate) SetNillableTitle(v *string) *TodoCreate {
 	if v != nil {
 		_c.SetTitle(*v)
+	}
+	return _c
+}
+
+// SetContent sets the "content" field.
+func (_c *TodoCreate) SetContent(v string) *TodoCreate {
+	_c.mutation.SetContent(v)
+	return _c
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_c *TodoCreate) SetNillableContent(v *string) *TodoCreate {
+	if v != nil {
+		_c.SetContent(*v)
+	}
+	return _c
+}
+
+// SetCompleted sets the "completed" field.
+func (_c *TodoCreate) SetCompleted(v bool) *TodoCreate {
+	_c.mutation.SetCompleted(v)
+	return _c
+}
+
+// SetNillableCompleted sets the "completed" field if the given value is not nil.
+func (_c *TodoCreate) SetNillableCompleted(v *bool) *TodoCreate {
+	if v != nil {
+		_c.SetCompleted(*v)
 	}
 	return _c
 }
@@ -83,9 +140,25 @@ func (_c *TodoCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *TodoCreate) defaults() {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		v := todo.DefaultCreatedAt()
+		_c.mutation.SetCreatedAt(v)
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		v := todo.DefaultUpdatedAt()
+		_c.mutation.SetUpdatedAt(v)
+	}
 	if _, ok := _c.mutation.Title(); !ok {
 		v := todo.DefaultTitle
 		_c.mutation.SetTitle(v)
+	}
+	if _, ok := _c.mutation.Content(); !ok {
+		v := todo.DefaultContent
+		_c.mutation.SetContent(v)
+	}
+	if _, ok := _c.mutation.Completed(); !ok {
+		v := todo.DefaultCompleted
+		_c.mutation.SetCompleted(v)
 	}
 	if _, ok := _c.mutation.ID(); !ok {
 		v := todo.DefaultID()
@@ -95,8 +168,20 @@ func (_c *TodoCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (_c *TodoCreate) check() error {
+	if _, ok := _c.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Todo.created_at"`)}
+	}
+	if _, ok := _c.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Todo.updated_at"`)}
+	}
 	if _, ok := _c.mutation.Title(); !ok {
 		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Todo.title"`)}
+	}
+	if _, ok := _c.mutation.Content(); !ok {
+		return &ValidationError{Name: "content", err: errors.New(`ent: missing required field "Todo.content"`)}
+	}
+	if _, ok := _c.mutation.Completed(); !ok {
+		return &ValidationError{Name: "completed", err: errors.New(`ent: missing required field "Todo.completed"`)}
 	}
 	return nil
 }
@@ -133,9 +218,25 @@ func (_c *TodoCreate) createSpec() (*Todo, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := _c.mutation.CreatedAt(); ok {
+		_spec.SetField(todo.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := _c.mutation.UpdatedAt(); ok {
+		_spec.SetField(todo.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
 	if value, ok := _c.mutation.Title(); ok {
 		_spec.SetField(todo.FieldTitle, field.TypeString, value)
 		_node.Title = value
+	}
+	if value, ok := _c.mutation.Content(); ok {
+		_spec.SetField(todo.FieldContent, field.TypeString, value)
+		_node.Content = value
+	}
+	if value, ok := _c.mutation.Completed(); ok {
+		_spec.SetField(todo.FieldCompleted, field.TypeBool, value)
+		_node.Completed = value
 	}
 	return _node, _spec
 }

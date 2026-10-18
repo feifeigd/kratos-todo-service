@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"kratos-todo-service/internal/data/ent/predicate"
 	"kratos-todo-service/internal/data/ent/todo"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,6 +28,12 @@ func (_u *TodoUpdate) Where(ps ...predicate.Todo) *TodoUpdate {
 	return _u
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *TodoUpdate) SetUpdatedAt(v time.Time) *TodoUpdate {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
 // SetTitle sets the "title" field.
 func (_u *TodoUpdate) SetTitle(v string) *TodoUpdate {
 	_u.mutation.SetTitle(v)
@@ -41,6 +48,34 @@ func (_u *TodoUpdate) SetNillableTitle(v *string) *TodoUpdate {
 	return _u
 }
 
+// SetContent sets the "content" field.
+func (_u *TodoUpdate) SetContent(v string) *TodoUpdate {
+	_u.mutation.SetContent(v)
+	return _u
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_u *TodoUpdate) SetNillableContent(v *string) *TodoUpdate {
+	if v != nil {
+		_u.SetContent(*v)
+	}
+	return _u
+}
+
+// SetCompleted sets the "completed" field.
+func (_u *TodoUpdate) SetCompleted(v bool) *TodoUpdate {
+	_u.mutation.SetCompleted(v)
+	return _u
+}
+
+// SetNillableCompleted sets the "completed" field if the given value is not nil.
+func (_u *TodoUpdate) SetNillableCompleted(v *bool) *TodoUpdate {
+	if v != nil {
+		_u.SetCompleted(*v)
+	}
+	return _u
+}
+
 // Mutation returns the TodoMutation object of the builder.
 func (_u *TodoUpdate) Mutation() *TodoMutation {
 	return _u.mutation
@@ -48,6 +83,7 @@ func (_u *TodoUpdate) Mutation() *TodoMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (_u *TodoUpdate) Save(ctx context.Context) (int, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -73,6 +109,14 @@ func (_u *TodoUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (_u *TodoUpdate) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := todo.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
+	}
+}
+
 func (_u *TodoUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(todo.Table, todo.Columns, sqlgraph.NewFieldSpec(todo.FieldID, field.TypeUUID))
 	if ps := _u.mutation.predicates; len(ps) > 0 {
@@ -82,8 +126,17 @@ func (_u *TodoUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(todo.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(todo.FieldTitle, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Content(); ok {
+		_spec.SetField(todo.FieldContent, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Completed(); ok {
+		_spec.SetField(todo.FieldCompleted, field.TypeBool, value)
 	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -105,6 +158,12 @@ type TodoUpdateOne struct {
 	mutation *TodoMutation
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (_u *TodoUpdateOne) SetUpdatedAt(v time.Time) *TodoUpdateOne {
+	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
 // SetTitle sets the "title" field.
 func (_u *TodoUpdateOne) SetTitle(v string) *TodoUpdateOne {
 	_u.mutation.SetTitle(v)
@@ -115,6 +174,34 @@ func (_u *TodoUpdateOne) SetTitle(v string) *TodoUpdateOne {
 func (_u *TodoUpdateOne) SetNillableTitle(v *string) *TodoUpdateOne {
 	if v != nil {
 		_u.SetTitle(*v)
+	}
+	return _u
+}
+
+// SetContent sets the "content" field.
+func (_u *TodoUpdateOne) SetContent(v string) *TodoUpdateOne {
+	_u.mutation.SetContent(v)
+	return _u
+}
+
+// SetNillableContent sets the "content" field if the given value is not nil.
+func (_u *TodoUpdateOne) SetNillableContent(v *string) *TodoUpdateOne {
+	if v != nil {
+		_u.SetContent(*v)
+	}
+	return _u
+}
+
+// SetCompleted sets the "completed" field.
+func (_u *TodoUpdateOne) SetCompleted(v bool) *TodoUpdateOne {
+	_u.mutation.SetCompleted(v)
+	return _u
+}
+
+// SetNillableCompleted sets the "completed" field if the given value is not nil.
+func (_u *TodoUpdateOne) SetNillableCompleted(v *bool) *TodoUpdateOne {
+	if v != nil {
+		_u.SetCompleted(*v)
 	}
 	return _u
 }
@@ -139,6 +226,7 @@ func (_u *TodoUpdateOne) Select(field string, fields ...string) *TodoUpdateOne {
 
 // Save executes the query and returns the updated Todo entity.
 func (_u *TodoUpdateOne) Save(ctx context.Context) (*Todo, error) {
+	_u.defaults()
 	return withHooks(ctx, _u.sqlSave, _u.mutation, _u.hooks)
 }
 
@@ -161,6 +249,14 @@ func (_u *TodoUpdateOne) Exec(ctx context.Context) error {
 func (_u *TodoUpdateOne) ExecX(ctx context.Context) {
 	if err := _u.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (_u *TodoUpdateOne) defaults() {
+	if _, ok := _u.mutation.UpdatedAt(); !ok {
+		v := todo.UpdateDefaultUpdatedAt()
+		_u.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -190,8 +286,17 @@ func (_u *TodoUpdateOne) sqlSave(ctx context.Context) (_node *Todo, err error) {
 			}
 		}
 	}
+	if value, ok := _u.mutation.UpdatedAt(); ok {
+		_spec.SetField(todo.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := _u.mutation.Title(); ok {
 		_spec.SetField(todo.FieldTitle, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Content(); ok {
+		_spec.SetField(todo.FieldContent, field.TypeString, value)
+	}
+	if value, ok := _u.mutation.Completed(); ok {
+		_spec.SetField(todo.FieldCompleted, field.TypeBool, value)
 	}
 	_node = &Todo{config: _u.config}
 	_spec.Assign = _node.assignValues
