@@ -10,7 +10,7 @@ import (
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	_ "google.golang.org/protobuf/types/known/emptypb"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 	reflect "reflect"
@@ -769,14 +769,19 @@ const file_todo_v1_todo_proto_rawDesc = "" +
 	"TodoStatus\x12\x1b\n" +
 	"\x17TODO_STATUS_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12TODO_STATUS_ACTIVE\x10\x01\x12\x17\n" +
-	"\x13TODO_STATUS_DELETED\x10\x022\xdb\x02\n" +
+	"\x13TODO_STATUS_DELETED\x10\x022\xe7\x04\n" +
 	"\vTodoService\x12V\n" +
 	"\n" +
 	"CreateTodo\x12\x1a.todo.v1.CreateTodoRequest\x1a\r.todo.v1.Todo\"\x1d\x82\xd3\xe4\x93\x02\x17:\x04todo\"\x0fv1/todos/create\x12P\n" +
 	"\tListTodos\x12\x19.todo.v1.ListTodosRequest\x1a\x10.todo.v1.TodoSet\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/todos/list\x12W\n" +
 	"\n" +
 	"WatchTodos\x12\x1a.todo.v1.WatchTodosRequest\x1a\x12.todo.v1.TodoEvent\"\x17\x82\xd3\xe4\x93\x02\x11\x12\x0f/v1/todos/watch0\x01\x12I\n" +
-	"\aGetTodo\x12\x17.todo.v1.GetTodoRequest\x1a\r.todo.v1.Todo\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/todos/{id}B$Z\"kratos-todo-service/api/todo/v1;v1b\x06proto3"
+	"\aGetTodo\x12\x17.todo.v1.GetTodoRequest\x1a\r.todo.v1.Todo\"\x16\x82\xd3\xe4\x93\x02\x10\x12\x0e/v1/todos/{id}\x12W\n" +
+	"\n" +
+	"UpdateTodo\x12\x1a.todo.v1.UpdateTodoRequest\x1a\r.todo.v1.Todo\"\x1e\x82\xd3\xe4\x93\x02\x18:\x04todo\x1a\x10/v1/todos/update\x12W\n" +
+	"\n" +
+	"DeleteTodo\x12\x1a.todo.v1.DeleteTodoRequest\x1a\x16.google.protobuf.Empty\"\x15\x82\xd3\xe4\x93\x02\x0f*\rv1/todos/{id}\x12X\n" +
+	"\tSyncTodos\x12\x18.todo.v1.SyncTodoRequest\x1a\x12.todo.v1.TodoEvent\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/todos/sync(\x010\x01B$Z\"kratos-todo-service/api/todo/v1;v1b\x06proto3"
 
 var (
 	file_todo_v1_todo_proto_rawDescOnce sync.Once
@@ -806,6 +811,7 @@ var file_todo_v1_todo_proto_goTypes = []any{
 	(*TodoEvent)(nil),             // 10: todo.v1.TodoEvent
 	(*timestamppb.Timestamp)(nil), // 11: google.protobuf.Timestamp
 	(*fieldmaskpb.FieldMask)(nil), // 12: google.protobuf.FieldMask
+	(*emptypb.Empty)(nil),         // 13: google.protobuf.Empty
 }
 var file_todo_v1_todo_proto_depIdxs = []int32{
 	11, // 0: todo.v1.Todo.created_at:type_name -> google.protobuf.Timestamp
@@ -823,12 +829,18 @@ var file_todo_v1_todo_proto_depIdxs = []int32{
 	5,  // 12: todo.v1.TodoService.ListTodos:input_type -> todo.v1.ListTodosRequest
 	8,  // 13: todo.v1.TodoService.WatchTodos:input_type -> todo.v1.WatchTodosRequest
 	4,  // 14: todo.v1.TodoService.GetTodo:input_type -> todo.v1.GetTodoRequest
-	1,  // 15: todo.v1.TodoService.CreateTodo:output_type -> todo.v1.Todo
-	2,  // 16: todo.v1.TodoService.ListTodos:output_type -> todo.v1.TodoSet
-	10, // 17: todo.v1.TodoService.WatchTodos:output_type -> todo.v1.TodoEvent
-	1,  // 18: todo.v1.TodoService.GetTodo:output_type -> todo.v1.Todo
-	15, // [15:19] is the sub-list for method output_type
-	11, // [11:15] is the sub-list for method input_type
+	6,  // 15: todo.v1.TodoService.UpdateTodo:input_type -> todo.v1.UpdateTodoRequest
+	7,  // 16: todo.v1.TodoService.DeleteTodo:input_type -> todo.v1.DeleteTodoRequest
+	9,  // 17: todo.v1.TodoService.SyncTodos:input_type -> todo.v1.SyncTodoRequest
+	1,  // 18: todo.v1.TodoService.CreateTodo:output_type -> todo.v1.Todo
+	2,  // 19: todo.v1.TodoService.ListTodos:output_type -> todo.v1.TodoSet
+	10, // 20: todo.v1.TodoService.WatchTodos:output_type -> todo.v1.TodoEvent
+	1,  // 21: todo.v1.TodoService.GetTodo:output_type -> todo.v1.Todo
+	1,  // 22: todo.v1.TodoService.UpdateTodo:output_type -> todo.v1.Todo
+	13, // 23: todo.v1.TodoService.DeleteTodo:output_type -> google.protobuf.Empty
+	10, // 24: todo.v1.TodoService.SyncTodos:output_type -> todo.v1.TodoEvent
+	18, // [18:25] is the sub-list for method output_type
+	11, // [11:18] is the sub-list for method input_type
 	11, // [11:11] is the sub-list for extension type_name
 	11, // [11:11] is the sub-list for extension extendee
 	0,  // [0:11] is the sub-list for field type_name

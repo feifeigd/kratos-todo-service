@@ -7,6 +7,8 @@
 *.dll
 *.so
 *.dylib
+# dlv debug binaries (e.g. __debug_bin.exe123456789)
+__debug_bin*
 
 # Test binary, built with `go test -c`
 *.test

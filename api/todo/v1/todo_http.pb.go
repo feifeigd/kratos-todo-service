@@ -9,6 +9,7 @@ package v1
 import (
 	context "context"
 	http "github.com/go-kratos/kratos/v3/transport/http"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -18,8 +19,11 @@ var _ = new(context.Context)
 const _ = http.SupportPackageIsVersion3
 
 const OperationTodoServiceCreateTodo = "/todo.v1.TodoService/CreateTodo"
+const OperationTodoServiceDeleteTodo = "/todo.v1.TodoService/DeleteTodo"
 const OperationTodoServiceGetTodo = "/todo.v1.TodoService/GetTodo"
 const OperationTodoServiceListTodos = "/todo.v1.TodoService/ListTodos"
+const OperationTodoServiceSyncTodos = "/todo.v1.TodoService/SyncTodos"
+const OperationTodoServiceUpdateTodo = "/todo.v1.TodoService/UpdateTodo"
 const OperationTodoServiceWatchTodos = "/todo.v1.TodoService/WatchTodos"
 
 type TodoServiceHTTPServer interface {
@@ -27,11 +31,18 @@ type TodoServiceHTTPServer interface {
 	// with the server-assigned id, created_at, and updated_at populated.
 	// Returns INVALID_ARGUMENT if the request payload fails validation.
 	CreateTodo(context.Context, *CreateTodoRequest) (*Todo, error)
+	DeleteTodo(context.Context, *DeleteTodoRequest) (*emptypb.Empty, error)
 	GetTodo(context.Context, *GetTodoRequest) (*Todo, error)
 	// ListTodos ListTodos returns a page of todo items, optionally filtered and ordered.
 	// Use the next_page_token from TodoSet to retrieve subsequent pages.
 	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
 	ListTodos(context.Context, *ListTodosRequest) (*TodoSet, error)
+	// SyncTodos SyncTodos opens a bidirectional stream for two-way synchronization.
+	// The client sends SyncTodoRequest message describing local changes,
+	// and the server pushes back TodoEvent messages reflecting the resulting state.
+	// The stream stays open until eigher side closes it.
+	SyncTodos(TodoService_SyncTodosServer) error
+	UpdateTodo(context.Context, *UpdateTodoRequest) (*Todo, error)
 	// WatchTodos WatchTodos opens a server-side stream that emits a TodoEvent for every create, update, or delete that matches the supplied filter and ordering.
 	// The streamremains open until the client cancels or the server terminates it.
 	// NOTE: this static path must be registered before "/v1/todos/{id}",
@@ -45,6 +56,24 @@ func RegisterTodoServiceHTTPServer(s *http.Server, srv TodoServiceHTTPServer) {
 	r.Handle("GET", "/v1/todos/list", _TodoService_ListTodos0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/todos/watch", _TodoService_WatchTodos0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/todos/{id}", _TodoService_GetTodo0_HTTP_Handler(srv))
+	r.Handle("PUT", "/v1/todos/update", _TodoService_UpdateTodo0_HTTP_Handler(srv))
+	r.Handle("DELETE", "v1/todos/{id}", _TodoService_DeleteTodo0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/todos/sync", _TodoService_SyncTodos0_HTTP_Handler(srv))
+}
+
+type TodoService_SyncTodosHTTPServer struct {
+	http.ServerStream
+}
+
+func (x *TodoService_SyncTodosHTTPServer) Send(m *TodoEvent) error {
+	return x.ServerStream.Send(m)
+}
+func (x *TodoService_SyncTodosHTTPServer) Recv() (*SyncTodoRequest, error) {
+	m := new(SyncTodoRequest)
+	if err := x.ServerStream.Recv(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 type TodoService_WatchTodosHTTPServer struct {
@@ -135,16 +164,83 @@ func _TodoService_GetTodo0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx http
 	}
 }
 
+func _TodoService_UpdateTodo0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in UpdateTodoRequest
+		if err := ctx.Bind(&in.Todo); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationTodoServiceUpdateTodo)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.UpdateTodo(ctx, req.(*UpdateTodoRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*Todo)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _TodoService_DeleteTodo0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in DeleteTodoRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindVars(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationTodoServiceDeleteTodo)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.DeleteTodo(ctx, req.(*DeleteTodoRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*emptypb.Empty)
+		return ctx.Result(200, reply)
+	}
+}
+
+func _TodoService_SyncTodos0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		stream, err := http.NewWebSocketServerStream(ctx)
+		if err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationTodoServiceSyncTodos)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			stream.SetContext(ctx)
+			return nil, srv.SyncTodos(&TodoService_SyncTodosHTTPServer{ServerStream: stream})
+		})
+		_, err = h(ctx, nil)
+		return stream.Close(err)
+	}
+}
+
 type TodoServiceHTTPClient interface {
 	// CreateTodo CreateTodo creates a new todo item and returns the persisted record
 	// with the server-assigned id, created_at, and updated_at populated.
 	// Returns INVALID_ARGUMENT if the request payload fails validation.
 	CreateTodo(ctx context.Context, req *CreateTodoRequest, opts ...http.CallOption) (rsp *Todo, err error)
+	DeleteTodo(ctx context.Context, req *DeleteTodoRequest, opts ...http.CallOption) (rsp *emptypb.Empty, err error)
 	GetTodo(ctx context.Context, req *GetTodoRequest, opts ...http.CallOption) (rsp *Todo, err error)
 	// ListTodos ListTodos returns a page of todo items, optionally filtered and ordered.
 	// Use the next_page_token from TodoSet to retrieve subsequent pages.
 	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
 	ListTodos(ctx context.Context, req *ListTodosRequest, opts ...http.CallOption) (rsp *TodoSet, err error)
+	// SyncTodos SyncTodos opens a bidirectional stream for two-way synchronization.
+	// The client sends SyncTodoRequest message describing local changes,
+	// and the server pushes back TodoEvent messages reflecting the resulting state.
+	// The stream stays open until eigher side closes it.
+	SyncTodos(ctx context.Context, opts ...http.CallOption) (TodoService_SyncTodosClient, error)
+	UpdateTodo(ctx context.Context, req *UpdateTodoRequest, opts ...http.CallOption) (rsp *Todo, err error)
 	// WatchTodos WatchTodos opens a server-side stream that emits a TodoEvent for every create, update, or delete that matches the supplied filter and ordering.
 	// The streamremains open until the client cancels or the server terminates it.
 	// NOTE: this static path must be registered before "/v1/todos/{id}",
@@ -158,6 +254,52 @@ type TodoServiceHTTPClientImpl struct {
 
 func NewTodoServiceHTTPClient(client *http.Client) TodoServiceHTTPClient {
 	return &TodoServiceHTTPClientImpl{client}
+}
+
+type TodoService_SyncTodosHTTPClient struct {
+	http.ClientStream
+	ctx     context.Context
+	cc      *http.Client
+	pattern string
+	opts    []http.CallOption
+}
+
+func (x *TodoService_SyncTodosHTTPClient) open(m *SyncTodoRequest) error {
+	if x.ClientStream != nil {
+		return nil
+	}
+	opts := x.opts
+	path := http.BuildPath(x.pattern, m)
+	stream, err := x.cc.WebSocket(x.ctx, path, opts...)
+	if err != nil {
+		return err
+	}
+	x.ClientStream = stream
+	return nil
+}
+
+func (x *TodoService_SyncTodosHTTPClient) CloseSend() error {
+	if err := x.open(nil); err != nil {
+		return err
+	}
+	return x.ClientStream.CloseSend()
+}
+
+func (x *TodoService_SyncTodosHTTPClient) Send(m *SyncTodoRequest) error {
+	if err := x.open(m); err != nil {
+		return err
+	}
+	return x.ClientStream.Send(m)
+}
+func (x *TodoService_SyncTodosHTTPClient) Recv() (*TodoEvent, error) {
+	if err := x.open(nil); err != nil {
+		return nil, err
+	}
+	m := new(TodoEvent)
+	if err := x.ClientStream.Recv(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 type TodoService_WatchTodosHTTPClient struct {
@@ -186,6 +328,22 @@ func (c *TodoServiceHTTPClientImpl) CreateTodo(ctx context.Context, in *CreateTo
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "POST", path, in.Todo, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+func (c *TodoServiceHTTPClientImpl) DeleteTodo(ctx context.Context, in *DeleteTodoRequest, opts ...http.CallOption) (*emptypb.Empty, error) {
+	var out emptypb.Empty
+	pattern := "v1/todos/{id}"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.Operation(OperationTodoServiceDeleteTodo),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "DELETE", path, nil, &out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -221,6 +379,38 @@ func (c *TodoServiceHTTPClientImpl) ListTodos(ctx context.Context, in *ListTodos
 		http.PathTemplate(pattern),
 	}, opts...)
 	err := c.cc.Invoke(ctx, "GET", path, nil, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// SyncTodos SyncTodos opens a bidirectional stream for two-way synchronization.
+// The client sends SyncTodoRequest message describing local changes,
+// and the server pushes back TodoEvent messages reflecting the resulting state.
+// The stream stays open until eigher side closes it.
+func (c *TodoServiceHTTPClientImpl) SyncTodos(ctx context.Context, opts ...http.CallOption) (TodoService_SyncTodosClient, error) {
+	pattern := "/v1/todos/sync"
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationTodoServiceSyncTodos),
+		http.PathTemplate(pattern),
+	}, opts...)
+	return &TodoService_SyncTodosHTTPClient{ctx: ctx, cc: c.cc, pattern: pattern, opts: opts}, nil
+}
+
+func (c *TodoServiceHTTPClientImpl) UpdateTodo(ctx context.Context, in *UpdateTodoRequest, opts ...http.CallOption) (*Todo, error) {
+	var out Todo
+	pattern := "/v1/todos/update"
+	path := http.BuildPath(pattern, in, http.WithQueryParams(), http.WithOmitFields("todo"))
+	opts = append([]http.CallOption{
+		http.Accept("application/protojson"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationTodoServiceUpdateTodo),
+		http.PathTemplate(pattern),
+	}, opts...)
+	err := c.cc.Invoke(ctx, "PUT", path, in.Todo, &out, opts...)
 	if err != nil {
 		return nil, err
 	}

@@ -41,6 +41,50 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/todo.v1.TodoSet'
+    /v1/todos/sync:
+        post:
+            tags:
+                - TodoService
+            description: "SyncTodos opens a bidirectional stream for two-way synchronization.\r\n The client sends SyncTodoRequest message describing local changes,\r\n and the server pushes back TodoEvent messages reflecting the resulting state.\r\n The stream stays open until eigher side closes it."
+            operationId: TodoService_SyncTodos
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/todo.v1.SyncTodoRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.TodoEvent'
+    /v1/todos/update:
+        put:
+            tags:
+                - TodoService
+            operationId: TodoService_UpdateTodo
+            parameters:
+                - name: updateMask
+                  in: query
+                  description: "Set of field paths in todo to overwrite. \r\n Fields not listed are left unchanged.\r\n Use a single path of `*` to replace every mutable field."
+                  schema:
+                    type: string
+                    format: field-mask
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/todo.v1.Todo'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/todo.v1.Todo'
     /v1/todos/watch:
         get:
             tags:
@@ -111,8 +155,41 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/todo.v1.Todo'
+    v1/todos/{id}:
+        delete:
+            tags:
+                - TodoService
+            operationId: TodoService_DeleteTodo
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    description: OK
+                    content: {}
 components:
     schemas:
+        todo.v1.SyncTodoRequest:
+            type: object
+            properties:
+                action:
+                    type: string
+                    description: The operation to perform. One of `create`, `update`, or `delete`.
+                todo:
+                    allOf:
+                        - $ref: '#/components/schemas/todo.v1.Todo'
+                    description: Payload for `create` and `update` actions. Ignored for `delete`.
+                id:
+                    type: string
+                    description: Identifier of the target todo. Required for `delete` and `update`
+                updateMask:
+                    type: string
+                    description: "Field mask used by `update` actions to limit which fields are overwritten.\r\n Ignored for `create` and `delete`."
+                    format: field-mask
+            description: "SyncTodoRequest is a single client message in the SyncTodos bidirectional stream.\r\n The action field selects which operation to perform on the server."
         todo.v1.Todo:
             type: object
             properties:

@@ -11,6 +11,7 @@ import (
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 )
 
 // This is a compile-time assertion to ensure that this generated file
@@ -23,6 +24,9 @@ const (
 	TodoService_ListTodos_FullMethodName  = "/todo.v1.TodoService/ListTodos"
 	TodoService_WatchTodos_FullMethodName = "/todo.v1.TodoService/WatchTodos"
 	TodoService_GetTodo_FullMethodName    = "/todo.v1.TodoService/GetTodo"
+	TodoService_UpdateTodo_FullMethodName = "/todo.v1.TodoService/UpdateTodo"
+	TodoService_DeleteTodo_FullMethodName = "/todo.v1.TodoService/DeleteTodo"
+	TodoService_SyncTodos_FullMethodName  = "/todo.v1.TodoService/SyncTodos"
 )
 
 // TodoServiceClient is the client API for TodoService service.
@@ -47,6 +51,13 @@ type TodoServiceClient interface {
 	// otherwise the wildcard route shadows it (mux matches in declaration order).
 	WatchTodos(ctx context.Context, in *WatchTodosRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[TodoEvent], error)
 	GetTodo(ctx context.Context, in *GetTodoRequest, opts ...grpc.CallOption) (*Todo, error)
+	UpdateTodo(ctx context.Context, in *UpdateTodoRequest, opts ...grpc.CallOption) (*Todo, error)
+	DeleteTodo(ctx context.Context, in *DeleteTodoRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// SyncTodos opens a bidirectional stream for two-way synchronization.
+	// The client sends SyncTodoRequest message describing local changes,
+	// and the server pushes back TodoEvent messages reflecting the resulting state.
+	// The stream stays open until eigher side closes it.
+	SyncTodos(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[SyncTodoRequest, TodoEvent], error)
 }
 
 type todoServiceClient struct {
@@ -106,6 +117,39 @@ func (c *todoServiceClient) GetTodo(ctx context.Context, in *GetTodoRequest, opt
 	return out, nil
 }
 
+func (c *todoServiceClient) UpdateTodo(ctx context.Context, in *UpdateTodoRequest, opts ...grpc.CallOption) (*Todo, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(Todo)
+	err := c.cc.Invoke(ctx, TodoService_UpdateTodo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *todoServiceClient) DeleteTodo(ctx context.Context, in *DeleteTodoRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, TodoService_DeleteTodo_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *todoServiceClient) SyncTodos(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[SyncTodoRequest, TodoEvent], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &TodoService_ServiceDesc.Streams[1], TodoService_SyncTodos_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[SyncTodoRequest, TodoEvent]{ClientStream: stream}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type TodoService_SyncTodosClient = grpc.BidiStreamingClient[SyncTodoRequest, TodoEvent]
+
 // TodoServiceServer is the server API for TodoService service.
 // All implementations must embed UnimplementedTodoServiceServer
 // for forward compatibility.
@@ -128,6 +172,13 @@ type TodoServiceServer interface {
 	// otherwise the wildcard route shadows it (mux matches in declaration order).
 	WatchTodos(*WatchTodosRequest, grpc.ServerStreamingServer[TodoEvent]) error
 	GetTodo(context.Context, *GetTodoRequest) (*Todo, error)
+	UpdateTodo(context.Context, *UpdateTodoRequest) (*Todo, error)
+	DeleteTodo(context.Context, *DeleteTodoRequest) (*emptypb.Empty, error)
+	// SyncTodos opens a bidirectional stream for two-way synchronization.
+	// The client sends SyncTodoRequest message describing local changes,
+	// and the server pushes back TodoEvent messages reflecting the resulting state.
+	// The stream stays open until eigher side closes it.
+	SyncTodos(grpc.BidiStreamingServer[SyncTodoRequest, TodoEvent]) error
 	mustEmbedUnimplementedTodoServiceServer()
 }
 
@@ -149,6 +200,15 @@ func (UnimplementedTodoServiceServer) WatchTodos(*WatchTodosRequest, grpc.Server
 }
 func (UnimplementedTodoServiceServer) GetTodo(context.Context, *GetTodoRequest) (*Todo, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTodo not implemented")
+}
+func (UnimplementedTodoServiceServer) UpdateTodo(context.Context, *UpdateTodoRequest) (*Todo, error) {
+	return nil, status.Error(codes.Unimplemented, "method UpdateTodo not implemented")
+}
+func (UnimplementedTodoServiceServer) DeleteTodo(context.Context, *DeleteTodoRequest) (*emptypb.Empty, error) {
+	return nil, status.Error(codes.Unimplemented, "method DeleteTodo not implemented")
+}
+func (UnimplementedTodoServiceServer) SyncTodos(grpc.BidiStreamingServer[SyncTodoRequest, TodoEvent]) error {
+	return status.Error(codes.Unimplemented, "method SyncTodos not implemented")
 }
 func (UnimplementedTodoServiceServer) mustEmbedUnimplementedTodoServiceServer() {}
 func (UnimplementedTodoServiceServer) testEmbeddedByValue()                     {}
@@ -236,6 +296,49 @@ func _TodoService_GetTodo_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TodoService_UpdateTodo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTodoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TodoServiceServer).UpdateTodo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TodoService_UpdateTodo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TodoServiceServer).UpdateTodo(ctx, req.(*UpdateTodoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TodoService_DeleteTodo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteTodoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TodoServiceServer).DeleteTodo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TodoService_DeleteTodo_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TodoServiceServer).DeleteTodo(ctx, req.(*DeleteTodoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TodoService_SyncTodos_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(TodoServiceServer).SyncTodos(&grpc.GenericServerStream[SyncTodoRequest, TodoEvent]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type TodoService_SyncTodosServer = grpc.BidiStreamingServer[SyncTodoRequest, TodoEvent]
+
 // TodoService_ServiceDesc is the grpc.ServiceDesc for TodoService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -255,12 +358,26 @@ var TodoService_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "GetTodo",
 			Handler:    _TodoService_GetTodo_Handler,
 		},
+		{
+			MethodName: "UpdateTodo",
+			Handler:    _TodoService_UpdateTodo_Handler,
+		},
+		{
+			MethodName: "DeleteTodo",
+			Handler:    _TodoService_DeleteTodo_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "WatchTodos",
 			Handler:       _TodoService_WatchTodos_Handler,
 			ServerStreams: true,
+		},
+		{
+			StreamName:    "SyncTodos",
+			Handler:       _TodoService_SyncTodos_Handler,
+			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "todo/v1/todo.proto",

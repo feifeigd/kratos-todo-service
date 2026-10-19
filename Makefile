@@ -16,7 +16,7 @@ config:
 .PHONY: api
 # genreate api proto
 api:
-	buf dep update
+# 	buf dep update
 	buf generate --template buf.gen.yaml
 
 .PHONY: build

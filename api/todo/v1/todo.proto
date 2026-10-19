@@ -49,6 +49,30 @@ service TodoService {
             get: "/v1/todos/{id}"
         };
     }
+
+    rpc UpdateTodo(UpdateTodoRequest)returns(Todo){
+        option(google.api.http)={
+            put: "/v1/todos/update"
+            body: "todo"
+        };
+    }
+
+    rpc DeleteTodo(DeleteTodoRequest)returns(google.protobuf.Empty){
+        option(google.api.http)={
+            delete: "v1/todos/{id}"
+        };
+    }
+
+    // SyncTodos opens a bidirectional stream for two-way synchronization.
+    // The client sends SyncTodoRequest message describing local changes,
+    // and the server pushes back TodoEvent messages reflecting the resulting state.
+    // The stream stays open until eigher side closes it.
+    rpc SyncTodos(stream SyncTodoRequest)returns(stream TodoEvent){
+        option(google.api.http) = {
+            post: "/v1/todos/sync"
+            body: "*"
+        };
+    }
 }
 
 // TodoStatus is the lifecycle state of a todo item.
