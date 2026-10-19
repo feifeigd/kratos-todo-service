@@ -89,3 +89,33 @@ func (r *todoRepo) CreateTodo(ctx context.Context, t *biz.Todo) (*biz.Todo, erro
 
 	return toBiz(po), nil
 }
+
+func (r *todoRepo) UpdateTodo(ctx context.Context, t *biz.Todo) (*biz.Todo, error) {
+	po, err := r.data.db.Todo.UpdateOneID(t.ID).
+		Where(todo.StatusEQ(biz.TodoStatusActive)).
+		SetTitle(t.Title).
+		SetContent(t.Content).
+		SetCompleted(t.Completed).
+		Save(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, biz.ErrTodoNotFound
+		}
+		return nil, err
+	}
+	return toBiz(po), nil
+}
+
+func (r *todoRepo) DeleteTodo(ctx context.Context, id uuid.UUID) error {
+	affected, err := r.data.db.Todo.Update().
+		Where(todo.IDEQ(id), todo.StatusEQ(biz.TodoStatusActive)).
+		SetStatus(biz.TodoStatusDeleted).
+		Save(ctx)
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return biz.ErrTodoNotFound
+	}
+	return nil
+}

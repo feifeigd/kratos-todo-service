@@ -6,6 +6,7 @@ import (
 	"kratos-todo-service/internal/biz"
 
 	"github.com/google/uuid"
+	"go.einride.tech/aip/fieldmask"
 	"go.einride.tech/aip/filtering"
 	"go.einride.tech/aip/ordering"
 	"go.einride.tech/aip/pagination"
@@ -101,6 +102,22 @@ func (s *TodoService) ListTodos(ctx context.Context, req *v1.ListTodosRequest) (
 	}
 
 	return set, nil
+}
+
+func (s *TodoService) UpdateTodo(ctx context.Context, req *v1.UpdateTodoRequest) (*v1.Todo, error) {
+	if req.GetTodo().GetId() == "" || req.GetUpdateMask() == nil || len(req.GetUpdateMask().GetPaths()) == 0 {
+		return nil, biz.ErrTodoInvalidArgument
+	}
+	current, err := s.GetTodo(ctx, &v1.GetTodoRequest{Id: req.GetTodo().GetId()})
+	if err != nil {
+		return nil, err
+	}
+	fieldmask.Update(req.GetUpdateMask(), current, req.GetTodo())
+	todo, err := s.uc.UpdateTodo(ctx, convertTodo(current))
+	if err != nil {
+		return nil, err
+	}
+	return convertTodoReply(todo), nil
 }
 
 func (s *TodoService) WatchTodos(req *v1.WatchTodosRequest, stream v1.TodoService_WatchTodosServer) error {

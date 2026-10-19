@@ -42,6 +42,8 @@ type (
 		FindByID(context.Context, uuid.UUID) (*Todo, error)
 		ListTodos(context.Context, ...ListOption) ([]*Todo, error)
 		CreateTodo(context.Context, *Todo) (*Todo, error)
+		UpdateTodo(context.Context, *Todo) (*Todo, error)
+		DeleteTodo(context.Context, uuid.UUID) error
 	}
 
 	TodoUsecase struct {
@@ -69,6 +71,24 @@ func (uc *TodoUsecase) CreateTodo(ctx context.Context, todo *Todo) (*Todo, error
 		return nil, err
 	}
 	return uc.repo.CreateTodo(ctx, todo)
+}
+
+func (uc *TodoUsecase) UpdateTodo(ctx context.Context, todo *Todo) (*Todo, error) {
+	if todo == nil || todo.ID == uuid.Nil {
+		return nil, ErrTodoInvalidArgument
+	}
+	if err := validateTodo(todo); err != nil {
+		return nil, err
+	}
+	return uc.repo.UpdateTodo(ctx, todo)
+}
+
+func (uc *TodoUsecase) DeleteTodo(ctx context.Context, id uuid.UUID) error {
+	if id == uuid.Nil {
+		return ErrTodoInvalidArgument
+	}
+
+	return uc.repo.DeleteTodo(ctx, id)
 }
 
 func validateTodo(todo *Todo) error {
