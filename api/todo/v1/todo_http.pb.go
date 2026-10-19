@@ -20,6 +20,7 @@ const _ = http.SupportPackageIsVersion3
 const OperationTodoServiceCreateTodo = "/todo.v1.TodoService/CreateTodo"
 const OperationTodoServiceGetTodo = "/todo.v1.TodoService/GetTodo"
 const OperationTodoServiceListTodos = "/todo.v1.TodoService/ListTodos"
+const OperationTodoServiceWatchTodos = "/todo.v1.TodoService/WatchTodos"
 
 type TodoServiceHTTPServer interface {
 	// CreateTodo CreateTodo creates a new todo item and returns the persisted record
@@ -31,13 +32,27 @@ type TodoServiceHTTPServer interface {
 	// Use the next_page_token from TodoSet to retrieve subsequent pages.
 	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
 	ListTodos(context.Context, *ListTodosRequest) (*TodoSet, error)
+	// WatchTodos WatchTodos opens a server-side stream that emits a TodoEvent for every create, update, or delete that matches the supplied filter and ordering.
+	// The streamremains open until the client cancels or the server terminates it.
+	// NOTE: this static path must be registered before "/v1/todos/{id}",
+	// otherwise the wildcard route shadows it (mux matches in declaration order).
+	WatchTodos(*WatchTodosRequest, TodoService_WatchTodosServer) error
 }
 
 func RegisterTodoServiceHTTPServer(s *http.Server, srv TodoServiceHTTPServer) {
 	r := s.Route("/")
 	r.Handle("POST", "v1/todos/create", _TodoService_CreateTodo0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/todos/list", _TodoService_ListTodos0_HTTP_Handler(srv))
+	r.Handle("GET", "/v1/todos/watch", _TodoService_WatchTodos0_HTTP_Handler(srv))
 	r.Handle("GET", "/v1/todos/{id}", _TodoService_GetTodo0_HTTP_Handler(srv))
+}
+
+type TodoService_WatchTodosHTTPServer struct {
+	http.ServerStream
+}
+
+func (x *TodoService_WatchTodosHTTPServer) Send(m *TodoEvent) error {
+	return x.ServerStream.Send(m)
 }
 
 func _TodoService_CreateTodo0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx http.Context) error {
@@ -81,6 +96,23 @@ func _TodoService_ListTodos0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx ht
 	}
 }
 
+func _TodoService_WatchTodos0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in WatchTodosRequest
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		stream := http.NewServerSentEventServerStream(ctx)
+		http.SetOperation(ctx, OperationTodoServiceWatchTodos)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			stream.SetContext(ctx)
+			return nil, srv.WatchTodos(req.(*WatchTodosRequest), &TodoService_WatchTodosHTTPServer{ServerStream: stream})
+		})
+		_, err := h(ctx, &in)
+		return stream.Close(err)
+	}
+}
+
 func _TodoService_GetTodo0_HTTP_Handler(srv TodoServiceHTTPServer) func(ctx http.Context) error {
 	return func(ctx http.Context) error {
 		var in GetTodoRequest
@@ -113,6 +145,11 @@ type TodoServiceHTTPClient interface {
 	// Use the next_page_token from TodoSet to retrieve subsequent pages.
 	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
 	ListTodos(ctx context.Context, req *ListTodosRequest, opts ...http.CallOption) (rsp *TodoSet, err error)
+	// WatchTodos WatchTodos opens a server-side stream that emits a TodoEvent for every create, update, or delete that matches the supplied filter and ordering.
+	// The streamremains open until the client cancels or the server terminates it.
+	// NOTE: this static path must be registered before "/v1/todos/{id}",
+	// otherwise the wildcard route shadows it (mux matches in declaration order).
+	WatchTodos(ctx context.Context, req *WatchTodosRequest, opts ...http.CallOption) (TodoService_WatchTodosClient, error)
 }
 
 type TodoServiceHTTPClientImpl struct {
@@ -121,6 +158,18 @@ type TodoServiceHTTPClientImpl struct {
 
 func NewTodoServiceHTTPClient(client *http.Client) TodoServiceHTTPClient {
 	return &TodoServiceHTTPClientImpl{client}
+}
+
+type TodoService_WatchTodosHTTPClient struct {
+	http.ClientStream
+}
+
+func (x *TodoService_WatchTodosHTTPClient) Recv() (*TodoEvent, error) {
+	m := new(TodoEvent)
+	if err := x.ClientStream.Recv(m); err != nil {
+		return nil, err
+	}
+	return m, nil
 }
 
 // CreateTodo CreateTodo creates a new todo item and returns the persisted record
@@ -176,4 +225,24 @@ func (c *TodoServiceHTTPClientImpl) ListTodos(ctx context.Context, in *ListTodos
 		return nil, err
 	}
 	return &out, nil
+}
+
+// WatchTodos WatchTodos opens a server-side stream that emits a TodoEvent for every create, update, or delete that matches the supplied filter and ordering.
+// The streamremains open until the client cancels or the server terminates it.
+// NOTE: this static path must be registered before "/v1/todos/{id}",
+// otherwise the wildcard route shadows it (mux matches in declaration order).
+func (c *TodoServiceHTTPClientImpl) WatchTodos(ctx context.Context, in *WatchTodosRequest, opts ...http.CallOption) (TodoService_WatchTodosClient, error) {
+	pattern := "/v1/todos/watch"
+	path := http.BuildPath(pattern, in, http.WithQueryParams())
+	opts = append([]http.CallOption{
+		http.Accept("text/event-stream"),
+		http.ContentType("application/protojson"),
+		http.Operation(OperationTodoServiceWatchTodos),
+		http.PathTemplate(pattern),
+	}, opts...)
+	stream, err := c.cc.ServerSentEvent(ctx, "GET", path, nil, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &TodoService_WatchTodosHTTPClient{ClientStream: stream}, nil
 }

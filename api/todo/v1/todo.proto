@@ -6,6 +6,7 @@ package todo.v1;
 import "google/api/annotations.proto";
 import "google/api/field_behavior.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/field_mask.proto"; 
 import "google/protobuf/timestamp.proto"; // google.protobuf.Timestamp
 
 option go_package = "kratos-todo-service/api/todo/v1;v1";
@@ -30,6 +31,16 @@ service TodoService {
     rpc ListTodos(ListTodosRequest)returns (TodoSet){
         option(google.api.http)={
             get: "/v1/todos/list"
+        };
+    }
+
+    // WatchTodos opens a server-side stream that emits a TodoEvent for every create, update, or delete that matches the supplied filter and ordering.
+    // The streamremains open until the client cancels or the server terminates it.
+    // NOTE: this static path must be registered before "/v1/todos/{id}",
+    // otherwise the wildcard route shadows it (mux matches in declaration order).
+    rpc WatchTodos(WatchTodosRequest)returns(stream TodoEvent){
+        option(google.api.http)={
+            get: "/v1/todos/watch"
         };
     }
 
@@ -109,3 +120,53 @@ message ListTodosRequest {
     // Defaults to ascending order when no direction is supplied.
     string order_by = 4;
 }
+
+message UpdateTodoRequest {
+    // id 必填
+    Todo todo = 1 [(google.api.field_behavior)=REQUIRED];
+
+    // Set of field paths in todo to overwrite. 
+    // Fields not listed are left unchanged.
+    // Use a single path of `*` to replace every mutable field.
+    google.protobuf.FieldMask update_mask = 2 [(google.api.field_behavior)=REQUIRED];
+}
+
+message DeleteTodoRequest {
+    string id = 1 [(google.api.field_behavior)=REQUIRED];
+}
+
+message WatchTodosRequest {
+    int32 page_size = 1;
+    string page_token=2;
+    // 与 ListTodosRequest.filter 相同语法
+    string filter = 3;
+    // 与 ListTodosRequest.order_by 相同语法
+    string order_by = 4;
+}
+
+// SyncTodoRequest is a single client message in the SyncTodos bidirectional stream.
+// The action field selects which operation to perform on the server.
+message SyncTodoRequest {
+    // The operation to perform. One of `create`, `update`, or `delete`.
+    string action = 1;
+    // Payload for `create` and `update` actions. Ignored for `delete`.
+    Todo todo = 2;
+    // Identifier of the target todo. Required for `delete` and `update`
+    string id = 3;
+    // Field mask used by `update` actions to limit which fields are overwritten.
+    // Ignored for `create` and `delete`.
+    google.protobuf.FieldMask update_mask = 4;
+}
+
+// TodoEvent is a server-sent message describing a chagne to a todo item.
+// It is emitted by both WatchTodos and SyncTodos streams.
+message TodoEvent {
+    // The change that occurred. One of `created`, `updated`, or `deleted`.
+    string action = 1;
+
+    // The todo item after the change.
+    // For `deleted` events only the id field is guaranteed to be populated.
+    Todo todo = 2;
+    google.protobuf.Timestamp event_time = 3;
+}
+

@@ -103,6 +103,56 @@ func (s *TodoService) ListTodos(ctx context.Context, req *v1.ListTodosRequest) (
 	return set, nil
 }
 
+func (s *TodoService) WatchTodos(req *v1.WatchTodosRequest, stream v1.TodoService_WatchTodosServer) error {
+	declarations, err := filtering.NewDeclarations(
+		filtering.DeclareStandardFunctions(),
+		filtering.DeclareIdent("id", filtering.TypeString),
+		filtering.DeclareIdent("title", filtering.TypeString),
+		filtering.DeclareIdent("content", filtering.TypeString),
+		filtering.DeclareIdent("completed", filtering.TypeBool),
+		filtering.DeclareIdent("created_at", filtering.TypeTimestamp),
+		filtering.DeclareIdent("updated_at", filtering.TypeTimestamp),
+	)
+	if err != nil {
+		return err
+	}
+	filter, err := filtering.ParseFilter(req, declarations)
+	if err != nil {
+		return err
+	}
+	pageToken, err := pagination.ParsePageToken(req)
+	if err != nil {
+		return err
+	}
+	orderBy, err := ordering.ParseOrderBy(req)
+	if err != nil {
+		return err
+	}
+
+	if err := orderBy.ValidateForPaths("id", "title", "created_at", "updated_at"); err != nil {
+		return err
+	}
+	if req.PageSize <= 0 {
+		req.PageSize = defaultPageSize
+	}
+	todos, err := s.uc.ListTodos(stream.Context(),
+		biz.ListFilter(filter),
+		biz.ListOrderBy(orderBy),
+		biz.ListLimit(int(req.PageSize)),
+		biz.ListOffset(int(pageToken.Offset)),
+	)
+	if err != nil {
+		return err
+	}
+	for _, todo := range todos {
+		if err := stream.Send(newTodoEvent("snapshot", convertTodoReply(todo))); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // 验证输入的uuid格式
 func parseTodoID(id string) (uuid.UUID, error) {
 	parsed, err := uuid.Parse(id)
@@ -127,6 +177,14 @@ func convertTodo(in *v1.Todo) *biz.Todo {
 		Title:     in.GetTitle(),
 		Content:   in.GetContent(),
 		Completed: in.GetCompleted(),
+	}
+}
+
+func newTodoEvent(action string, todo *v1.Todo) *v1.TodoEvent {
+	return &v1.TodoEvent{
+		Action:    action,
+		Todo:      todo,
+		EventTime: timestamppb.Now(),
 	}
 }
 

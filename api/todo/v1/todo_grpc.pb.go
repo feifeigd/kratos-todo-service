@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion9
 const (
 	TodoService_CreateTodo_FullMethodName = "/todo.v1.TodoService/CreateTodo"
 	TodoService_ListTodos_FullMethodName  = "/todo.v1.TodoService/ListTodos"
+	TodoService_WatchTodos_FullMethodName = "/todo.v1.TodoService/WatchTodos"
 	TodoService_GetTodo_FullMethodName    = "/todo.v1.TodoService/GetTodo"
 )
 
@@ -40,6 +41,11 @@ type TodoServiceClient interface {
 	// Use the next_page_token from TodoSet to retrieve subsequent pages.
 	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
 	ListTodos(ctx context.Context, in *ListTodosRequest, opts ...grpc.CallOption) (*TodoSet, error)
+	// WatchTodos opens a server-side stream that emits a TodoEvent for every create, update, or delete that matches the supplied filter and ordering.
+	// The streamremains open until the client cancels or the server terminates it.
+	// NOTE: this static path must be registered before "/v1/todos/{id}",
+	// otherwise the wildcard route shadows it (mux matches in declaration order).
+	WatchTodos(ctx context.Context, in *WatchTodosRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[TodoEvent], error)
 	GetTodo(ctx context.Context, in *GetTodoRequest, opts ...grpc.CallOption) (*Todo, error)
 }
 
@@ -71,6 +77,25 @@ func (c *todoServiceClient) ListTodos(ctx context.Context, in *ListTodosRequest,
 	return out, nil
 }
 
+func (c *todoServiceClient) WatchTodos(ctx context.Context, in *WatchTodosRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[TodoEvent], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &TodoService_ServiceDesc.Streams[0], TodoService_WatchTodos_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[WatchTodosRequest, TodoEvent]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type TodoService_WatchTodosClient = grpc.ServerStreamingClient[TodoEvent]
+
 func (c *todoServiceClient) GetTodo(ctx context.Context, in *GetTodoRequest, opts ...grpc.CallOption) (*Todo, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Todo)
@@ -97,6 +122,11 @@ type TodoServiceServer interface {
 	// Use the next_page_token from TodoSet to retrieve subsequent pages.
 	// Returns INVALID_ARGUMENT if filter, order_by, or page_token are malformed.
 	ListTodos(context.Context, *ListTodosRequest) (*TodoSet, error)
+	// WatchTodos opens a server-side stream that emits a TodoEvent for every create, update, or delete that matches the supplied filter and ordering.
+	// The streamremains open until the client cancels or the server terminates it.
+	// NOTE: this static path must be registered before "/v1/todos/{id}",
+	// otherwise the wildcard route shadows it (mux matches in declaration order).
+	WatchTodos(*WatchTodosRequest, grpc.ServerStreamingServer[TodoEvent]) error
 	GetTodo(context.Context, *GetTodoRequest) (*Todo, error)
 	mustEmbedUnimplementedTodoServiceServer()
 }
@@ -113,6 +143,9 @@ func (UnimplementedTodoServiceServer) CreateTodo(context.Context, *CreateTodoReq
 }
 func (UnimplementedTodoServiceServer) ListTodos(context.Context, *ListTodosRequest) (*TodoSet, error) {
 	return nil, status.Error(codes.Unimplemented, "method ListTodos not implemented")
+}
+func (UnimplementedTodoServiceServer) WatchTodos(*WatchTodosRequest, grpc.ServerStreamingServer[TodoEvent]) error {
+	return status.Error(codes.Unimplemented, "method WatchTodos not implemented")
 }
 func (UnimplementedTodoServiceServer) GetTodo(context.Context, *GetTodoRequest) (*Todo, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetTodo not implemented")
@@ -174,6 +207,17 @@ func _TodoService_ListTodos_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TodoService_WatchTodos_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(WatchTodosRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(TodoServiceServer).WatchTodos(m, &grpc.GenericServerStream[WatchTodosRequest, TodoEvent]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type TodoService_WatchTodosServer = grpc.ServerStreamingServer[TodoEvent]
+
 func _TodoService_GetTodo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetTodoRequest)
 	if err := dec(in); err != nil {
@@ -212,6 +256,12 @@ var TodoService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _TodoService_GetTodo_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "WatchTodos",
+			Handler:       _TodoService_WatchTodos_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "todo/v1/todo.proto",
 }
