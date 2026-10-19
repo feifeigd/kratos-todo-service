@@ -10,6 +10,7 @@ import (
 	"go.einride.tech/aip/filtering"
 	"go.einride.tech/aip/ordering"
 	"go.einride.tech/aip/pagination"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -118,6 +119,17 @@ func (s *TodoService) UpdateTodo(ctx context.Context, req *v1.UpdateTodoRequest)
 		return nil, err
 	}
 	return convertTodoReply(todo), nil
+}
+
+func (s *TodoService) DeleteTodo(ctx context.Context, req *v1.DeleteTodoRequest) (*emptypb.Empty, error) {
+	id, err := parseTodoID(req.GetId())
+	if err != nil {
+		return nil, err
+	}
+	if err := s.uc.DeleteTodo(ctx, id); err != nil {
+		return nil, err
+	}
+	return &emptypb.Empty{}, nil
 }
 
 func (s *TodoService) WatchTodos(req *v1.WatchTodosRequest, stream v1.TodoService_WatchTodosServer) error {
