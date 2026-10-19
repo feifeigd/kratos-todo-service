@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"io"
 	v1 "kratos-todo-service/api/todo/v1"
 	"kratos-todo-service/internal/biz"
 
@@ -10,6 +11,7 @@ import (
 	"go.einride.tech/aip/filtering"
 	"go.einride.tech/aip/ordering"
 	"go.einride.tech/aip/pagination"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -130,6 +132,63 @@ func (s *TodoService) DeleteTodo(ctx context.Context, req *v1.DeleteTodoRequest)
 		return nil, err
 	}
 	return &emptypb.Empty{}, nil
+}
+
+// SyncTodos 双向流：逐条接收客户端的变更请求，执行后回推对应的 TodoEvent。
+// 客户端关闭发送方向（io.EOF）时正常结束；任一操作失败则终止流并返回错误。
+func (s *TodoService) SyncTodos(stream v1.TodoService_SyncTodosServer) error {
+	ctx := stream.Context()
+	for {
+		req, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		event, err := s.applySyncRequest(ctx, req)
+		if err != nil {
+			return err
+		}
+		if err := stream.Send(event); err != nil {
+			return err
+		}
+	}
+}
+
+// applySyncRequest 把一条 SyncTodoRequest 分发到对应的 CRUD 操作，
+// 复用 unary 方法保持校验与错误语义一致。
+func (s *TodoService) applySyncRequest(ctx context.Context, req *v1.SyncTodoRequest) (*v1.TodoEvent, error) {
+	switch req.GetAction() {
+	case "create":
+		todo, err := s.CreateTodo(ctx, &v1.CreateTodoRequest{Todo: req.GetTodo()})
+		if err != nil {
+			return nil, err
+		}
+		return newTodoEvent("created", todo), nil
+	case "update":
+		todo := req.GetTodo()
+		if todo == nil {
+			todo = &v1.Todo{Id: req.GetId()}
+		} else if todo.GetId() == "" {
+			// id 允许放在请求顶层，回填进 todo 复用 UpdateTodo 的校验
+			todo = proto.Clone(todo).(*v1.Todo)
+			todo.Id = req.GetId()
+		}
+		updated, err := s.UpdateTodo(ctx, &v1.UpdateTodoRequest{Todo: todo, UpdateMask: req.GetUpdateMask()})
+		if err != nil {
+			return nil, err
+		}
+		return newTodoEvent("updated", updated), nil
+	case "delete":
+		if _, err := s.DeleteTodo(ctx, &v1.DeleteTodoRequest{Id: req.GetId()}); err != nil {
+			return nil, err
+		}
+		// deleted 事件只保证 id 可用
+		return newTodoEvent("deleted", &v1.Todo{Id: req.GetId()}), nil
+	default:
+		return nil, biz.ErrTodoInvalidArgument
+	}
 }
 
 func (s *TodoService) WatchTodos(req *v1.WatchTodosRequest, stream v1.TodoService_WatchTodosServer) error {
