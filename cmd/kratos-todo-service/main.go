@@ -17,6 +17,7 @@ import (
 	"github.com/go-kratos/kratos/v3/transport/http"
 )
 
+// 编译的时候主人变量内容
 // go build -ldflags "-X main.Version=x.y.z"
 var (
 	// Name is the name of the compiled software.
@@ -46,8 +47,18 @@ func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 			gs,
 			hs,
 		),
+		kratos.AfterStart(func(ctx context.Context) error {
+			// 端口在 Run() 开头的 buildInstance 里就已 bind 完毕，
+			// 这里直接从框架收集所有 server 的 endpoint，不写死地址。
+			if app, ok := kratos.FromContext(ctx); ok {
+				log.InfoContext(ctx, "application started.", slog.Any("endpoints", app.Endpoint()))
+				return nil
+			}
+			log.InfoContext(ctx, "application started.")
+			return nil
+		}),
 		kratos.AfterStop(func(ctx context.Context) error {
-			log.InfoContext(ctx, "application stoped.")
+			log.InfoContext(ctx, "application stopped.")
 			return nil
 		}),
 	)
