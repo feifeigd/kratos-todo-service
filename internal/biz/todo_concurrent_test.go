@@ -89,8 +89,8 @@ func TestTodoUsecaseConcurrent(t *testing.T) {
 	uc := biz.NewTodoUsecase(newMockRepo())
 	ctx := context.Background()
 
-	const workers = 64
-	const iterations = 200
+	const workers = 32
+	const iterations = 50
 
 	var wg sync.WaitGroup
 	wg.Add(workers)

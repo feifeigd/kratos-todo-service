@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"io"
 	v1 "kratos-todo-service/api/todo/v1"
 	"kratos-todo-service/internal/biz"
@@ -140,7 +141,7 @@ func (s *TodoService) SyncTodos(stream v1.TodoService_SyncTodosServer) error {
 	ctx := stream.Context()
 	for {
 		req, err := stream.Recv()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return nil
 		}
 		if err != nil {

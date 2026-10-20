@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log/slog"
 	"os"
@@ -46,6 +47,10 @@ func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 			gs,
 			hs,
 		),
+		kratos.AfterStop(func(ctx context.Context) error {
+			log.InfoContext(ctx, "application stoped.")
+			return nil
+		}),
 	)
 }
 
@@ -53,8 +58,7 @@ func main() {
 	flag.Parse()
 	logger := log.NewLogger(
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			AddSource: true,
-			Level:     slog.LevelInfo,
+			Level: slog.LevelInfo,
 		}),
 		log.WithExtractor(tracing.TraceAttrs),
 	).With(
