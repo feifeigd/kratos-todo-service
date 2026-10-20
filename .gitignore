@@ -36,3 +36,6 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Local toolchain for -race (downloaded portable MinGW)
+.tools/

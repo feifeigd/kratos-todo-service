@@ -23,7 +23,12 @@ api:
 # build
 build:
 	go fmt
-	go build -ldflags "-X main.Version=$(VERSION)" -o ./bin/ ./...
+	go build -ldflags "-X main.Version=$(VERSION) -X main.Name=kratos-todo-service" -o ./bin/ ./...
+
+.PHONY: test
+# run all tests
+test:
+	go test ./...
 
 .PHONY: generate
 generate:
