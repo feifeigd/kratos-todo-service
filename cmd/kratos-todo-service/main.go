@@ -5,6 +5,9 @@ import (
 	"flag"
 	"log/slog"
 	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 
 	"kratos-todo-service/internal/conf"
 
@@ -56,9 +59,27 @@ func newApp(logger *slog.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 
 func main() {
 	flag.Parse()
+
+	// 只给本项目代码的日志带 source=，依赖库（module cache / GOROOT）的日志不带。
+	// 项目根目录由 main.go 自身路径推导（cmd/kratos-todo-service/main.go 上三级），
+	// 不硬编码绝对路径，项目搬位置也不用改。
+	_, mainFile, _, _ := runtime.Caller(0)
+	projectRoot := filepath.ToSlash(filepath.Dir(filepath.Dir(filepath.Dir(mainFile)))) + "/"
+
 	logger := log.NewLogger(
 		slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-			Level: slog.LevelInfo,
+			AddSource: true,
+			Level:     slog.LevelInfo,
+			ReplaceAttr: func(groups []string, a slog.Attr) slog.Attr {
+				if a.Key == slog.SourceKey && len(groups) == 0 {
+					if src, ok := a.Value.Any().(*slog.Source); ok {
+						if !strings.HasPrefix(filepath.ToSlash(src.File), projectRoot) {
+							return slog.Attr{}
+						}
+					}
+				}
+				return a
+			},
 		}),
 		log.WithExtractor(tracing.TraceAttrs),
 	).With(
